@@ -19,7 +19,7 @@ void Status::setExitFlag(int newFlag)
     exitFlag = newFlag;
 }
 
-double Status::getExitFlag()
+int Status::getExitFlag()
 {
     return exitFlag;
 }

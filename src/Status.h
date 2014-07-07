@@ -20,7 +20,7 @@ public:
     Status();
     
     void setExitFlag(int newFlag);
-    double getExitFlag();
+    int getExitFlag();
 };
 
 
