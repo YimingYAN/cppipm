@@ -9,11 +9,9 @@
 #ifndef cppipm_Problem_h
 #define cppipm_Problem_h
 
-#include "linAlg/tnt.h"
-using namespace TNT;
+#include <armadillo>
+using namespace arma;
 
-using mat = Array2D<double>;
-using vec = Array1D<double>;
 
 class Problem
 {
@@ -28,14 +26,13 @@ public:
     vec b;     // | Data
     vec c;     // |
     
-    int    m;     // number of constraints
-    int    n;     // number of variables
+    int m;     // number of constraints
+    int n;     // number of variables
     
     // Constructors
-    Problem(const mat &Q, const mat &A, const vec &b, const vec &c); // QP
-    Problem(const mat &A, const vec &b, const vec &c);     // LP
-    Problem(const Problem& otherProb);                              // Copy other problem
-    ~Problem();
+    Problem(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
+    Problem(const mat &A, const vec &b, const vec &c);                  // LP
+    Problem(const Problem& otherProb);                                  // Copy other problem
     
     // Methods
     void setOptx(const vec x);
