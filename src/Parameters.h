@@ -9,7 +9,6 @@
 #ifndef cppipm_Parameters_h
 #define cppipm_Parameters_h
 
-
 class Parameters
 {
 public:
@@ -18,6 +17,7 @@ public:
     int verbose;
     
     Parameters();
+    Parameters(int otherMaxIter, double otherTol, int otherVerbose);
     
     void set_maxIter(int otherMaxIter);
     void set_setTol(double otehrTol);

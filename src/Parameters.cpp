@@ -16,16 +16,28 @@ Parameters::Parameters()
     verbose = 1;
 }
 
+Parameters::Parameters(int otherMaxIter, double otherTol, int otherVerbose)
+{
+    assert(otherMaxIter >= 0);
+    maxIter = otherMaxIter;
+    
+    assert(otherTol >= 0);
+    tol = otherTol;
+    
+    assert(otherVerbose >= 0);
+    verbose = otherVerbose;
+}
+
 void Parameters::set_maxIter(int otherMaxIter)
 {
     assert(otherMaxIter >= 0);
     maxIter = otherMaxIter;
 }
 
-void Parameters::set_setTol(double otehrTol)
+void Parameters::set_setTol(double otherTol)
 {
-    assert(otehrTol >= 0);
-    tol = otehrTol;
+    assert(otherTol >= 0);
+    tol = otherTol;
 }
 
 void Parameters::set_verbose(int otherVerbose)
