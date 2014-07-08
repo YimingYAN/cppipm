@@ -3,7 +3,7 @@
 //  cppipm
 //
 //  Created by Yiming Yan on 07/07/2014.
-//  Copyright (c) 2014 Yiming. All rights reserved.
+//  Copyright (c) 2014 Yiming Yan. All rights reserved.
 //
 
 #ifndef cppipm_Status_h
@@ -20,7 +20,7 @@ public:
     Status();
     
     void setExitFlag(int newFlag);
-    int getExitFlag();
+    int getExitFlag() const;
 };
 
 

@@ -1,8 +1,13 @@
 cppipm
 =====
+C++ implementation of the Interior Point Method (CPIPM)
 
-C Plus Plus implementation of the Interior Point Method (CPIPM)
+##Requirements
+
+##Iterface
+
+##Eample
 
 
 
-In the aim to learn C+++
+In the aim of learning C+++

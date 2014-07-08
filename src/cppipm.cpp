@@ -3,7 +3,7 @@
 //  cppipm
 //
 //  Created by Yiming Yan on 08/07/2014.
-//  Copyright (c) 2014 Yiming. All rights reserved.
+//  Copyright (c) 2014 Yiming Yan. All rights reserved.
 //
 
 #include "cppipm.h"
@@ -64,6 +64,7 @@ void cppipm::solve()
         iter.updateIter();
         iter.iterIncrement();
     }
+    _printFooter(pars, iter, stat);
 }
 
 // Print info
@@ -71,7 +72,7 @@ void cppipm::_printHeader(const Parameters &pars)
 {
     using namespace std;
     if (pars.verbose > 0)
-        cout<<setw(10)<< "Iter";
+        cout<<setw(5)<< "Iter";
         cout<<setw(10)<<"Residual";
         cout<<setw(10)<<"Mu" << "\n";
 }
@@ -82,10 +83,22 @@ void cppipm::_printIter(const Parameters &pars, const Iterate &iter)
     
     if (pars.verbose > 0)
     {
-        cout<<setw(10)<< iter.getIterNum();
+        cout<<setw(5)<< iter.getIterNum();
         cout<<setprecision(2)<<scientific;
         cout<<setw(10)<<iter.getRes();
         cout<<setw(10)<< iter.getMu();
-        cout<<"\n";
+        cout<<endl;
+    }
+}
+
+void cppipm::_printFooter(const Parameters &pars, const Iterate &iter, const Status &stat)
+{
+    using namespace std;
+    
+    if (pars.verbose >= 0)
+    {
+        cout<<setfill('-')<<setw(30)<<"-"<<endl;
+        cout<< "CPPIPM Terminated. ";
+        cout<< "Status : "<<stat.getExitFlag() << endl;
     }
 }

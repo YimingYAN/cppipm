@@ -3,7 +3,7 @@
 //  cppipm
 //
 //  Created by Yiming Yan on 07/07/2014.
-//  Copyright (c) 2014 Yiming. All rights reserved.
+//  Copyright (c) 2014 Yiming Yan. All rights reserved.
 //
 
 #include "Status.h"
@@ -21,7 +21,7 @@ void Status::setExitFlag(int newFlag)
     exitFlag = newFlag;
 }
 
-int Status::getExitFlag()
+int Status::getExitFlag() const
 {
     return exitFlag;
 }

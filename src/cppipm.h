@@ -3,7 +3,7 @@
  *
  *
  * Created by Yiming Yan on 08/07/2014.
- * Copyright (c) 2014 Yiming. All rights reserved.
+ * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
 #include <iostream>
 #include <armadillo>
@@ -46,6 +46,6 @@ public:
     //Internal functions
     void _printHeader(const Parameters &pars);
     void _printIter(const Parameters &pars, const Iterate &iter);
-    void _printFooter(const Parameters &pars, const Iterate &iter);
+    void _printFooter(const Parameters &pars, const Iterate &iter, const Status &stat);
     
 };
