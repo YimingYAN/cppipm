@@ -2,11 +2,11 @@ cppipm
 =====
 C++ implementation of the Interior Point Method (CPIPM)
 
-##Requirements
+**Requirements
 
-##Iterface
+**Iterface
 
-##Eample
+**Eample
 
 
 

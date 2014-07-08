@@ -5,10 +5,7 @@
  * Created by Yiming Yan on 08/07/2014.
  * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
-#include <iostream>
 #include <armadillo>
-#include <cassert>
-#include <cmath>
 #include "Problem.h"
 #include "Parameters.h"
 #include "Status.h"
