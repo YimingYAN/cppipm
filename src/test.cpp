@@ -6,6 +6,7 @@
 #include "Parameters.h"
 #include "Status.h"
 #include "Iterate.h"
+#include "cppipm.h"
 
 
 using namespace arma;
@@ -23,7 +24,7 @@ int main (int argc, char* argv[])
     
     b(0) = 1;
     
-    c(0) = 1; c(1) = -1;
+    c(0) = 1; c(1) = 0.5;
 
     // Test Problems class
     Problem prob(Q,A,b,c);  //QP
@@ -56,12 +57,29 @@ int main (int argc, char* argv[])
     assert( stat.getExitFlag() == extflg);
     
     //Test Iterate class
-    Iterate iter(prob, pars, stat);
+    Iterate iter(prob);
     
     iter.initialPoint(prob);
-    iter.getIterx().print("x:");
-    iter.getResiduals(prob);
-    iter.solveNewton(prob);
+    while (true)
+    {
+        iter.getResiduals(prob);
+        if (iter.checkTermination(pars))
+        {
+            break;
+        }
+
+        iter.getResiduals(prob);
+        iter.solveNewton(prob);
+        iter.getStepSize(pars);
+        iter.updateIter();
+    }
+    
+    // Test the cppipm as a whole
+    //cppipm qp_test = cppipm(Q, A, b, c);
+    //qp_test.solve();
+    
+    cppipm lp_test = cppipm(A, b, c);
+    lp_test.solve();
     
 	return 0;
 }

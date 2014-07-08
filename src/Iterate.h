@@ -20,7 +20,8 @@ class Iterate
 {
 public:
     // constructor
-    Iterate(const Problem &prob, const Parameters &pars, const Status &stat);
+    Iterate();
+    Iterate(const Problem &prob);
     
     // functions
     void initialPoint(const Problem &prob);

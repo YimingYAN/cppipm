@@ -9,6 +9,11 @@
 #include "Problem.h"
 #include <cassert>
 
+Problem::Problem()
+{
+    
+}
+
 Problem::Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
 {
     m = iA.n_rows;
@@ -35,7 +40,7 @@ Problem::Problem(const mat &iA, const vec &ib, const vec &ic)
     b = ib;
     c = ic;
     
-    Q = mat(m,n) = 0.0;
+    Q = mat(n,n, fill::zeros);
 }
 
 

@@ -12,7 +12,7 @@
 Parameters::Parameters()
 {
     maxIter = 50;
-    tol = 1e-07;
+    tol = 1e-06;
     verbose = 1;
 }
 

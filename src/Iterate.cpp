@@ -10,10 +10,15 @@
 #include <iostream>
 #include "Iterate.h"
 
+Iterate::Iterate()
+{
+}
 
-Iterate::Iterate(const Problem &prob, const Parameters &pars, const Status &stat)
+Iterate::Iterate(const Problem &prob)
 {
     bc = std::max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
+    iter = 0;
+    mu = 1000; // give a large number for initial mu;
 }
 
 void Iterate::initialPoint(const Problem &prob)
@@ -30,6 +35,7 @@ void Iterate::getResiduals(const Problem &prob)
     sigma = std::min(0.1,100*mu);
     
     Rp = prob.b - prob.A*x;
+    prob.Q.print("getResidual Q = ");
     Rd = prob.c - prob.A.t()*y - s + prob.Q*x;
     Rm = sigma*mu*ones(prob.n) - x%s;
     

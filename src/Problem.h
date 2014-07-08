@@ -30,6 +30,7 @@ public:
     int n;     // number of variables
     
     // Constructors
+    Problem();
     Problem(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
     Problem(const mat &A, const vec &b, const vec &c);                  // LP
     Problem(const Problem& otherProb);                                  // Copy other problem
