@@ -13,7 +13,7 @@
 
 Iterate::Iterate(const Problem &prob, const Parameters &pars, const Status &stat)
 {
-    
+    bc = std::max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
 }
 
 void Iterate::initialPoint(const Problem &prob)
@@ -32,12 +32,17 @@ void Iterate::getResiduals(const Problem &prob)
     Rp = prob.b - prob.A*x;
     Rd = prob.c - prob.A.t()*y - s + prob.Q*x;
     Rm = sigma*mu*ones(prob.n) - x%s;
+    
+    residual = ( norm(Rp,2) + norm(Rd,2) + prob.n*mu ) / bc;
 }
 
 
 bool Iterate::checkTermination(const Parameters &pars)
 {
-    return residual < pars.tol;
+    bool check_maxIter  = iter > pars.maxIter;
+    bool check_residual = residual < pars.tol;
+    
+    return check_maxIter || check_residual;
 }
 
 void Iterate::solveNewton(const Problem &prob)
@@ -87,11 +92,35 @@ void Iterate::solveNewton(const Problem &prob)
     assert(norm( s%dx + x%ds - sigma*mu*ones(prob.n) + x%s,2 ) < 1e-12);
 }
 
-void Iterate::getStepSize()
+void Iterate::getStepSize(const Parameters &pars)
 {
+    alphax = 1;
+    alphas = 1;
+    
+    for (int i=0; i<dx.n_rows; i++)
+    {
+        if (dx(i) < 0)
+            if (alphax > -x(i)/dx(i))
+                alphax = -x(i)/dx(i);
+        
+        if (ds(i) < 0)
+            if (alphas > -s(i)/ds(i))
+                alphas = -s(i)/ds(i);
+    }
+    
+    alphax = pars.eta*alphax;
+    alphas = pars.eta*alphas;
 
+    assert( all(x+alphax*dx > 0) );
+    assert( all(s+alphas*ds > 0) );
 }
 
+void Iterate::updateIter()
+{
+    x = x + alphax * dx;
+    s = s + alphas * ds;
+    y = y + alphas * dy;
+}
 
 void Iterate::iterIncrement()
 {

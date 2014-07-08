@@ -27,7 +27,8 @@ public:
     void getResiduals(const Problem &prob);
     bool checkTermination(const Parameters &pars);
     void solveNewton(const Problem &prob);
-    void getStepSize();
+    void getStepSize(const Parameters &pars);
+    void updateIter();
     void iterIncrement();
     vec getIterx();
     vec getItery();

@@ -15,6 +15,7 @@ public:
     int maxIter;
     double tol;
     int verbose;
+    double eta = 0.9995;     // ratio for step sizes
     
     Parameters();
     Parameters(int otherMaxIter, double otherTol, int otherVerbose);
