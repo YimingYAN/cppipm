@@ -29,13 +29,12 @@ void Iterate::initialPoint(const Problem &prob)
     y.zeros(prob.m);
 }
 
-void Iterate::getResiduals(const Problem &prob)
+void Iterate::calResiduals(const Problem &prob)
 {
     mu = dot(x,s) / prob.n;
     sigma = std::min(0.1,100*mu);
     
     Rp = prob.b - prob.A*x;
-    prob.Q.print("getResidual Q = ");
     Rd = prob.c - prob.A.t()*y - s + prob.Q*x;
     Rm = sigma*mu*ones(prob.n) - x%s;
     
@@ -43,10 +42,15 @@ void Iterate::getResiduals(const Problem &prob)
 }
 
 
-bool Iterate::checkTermination(const Parameters &pars)
+bool Iterate::checkTermination(const Parameters &pars, Status &stat)
 {
     bool check_maxIter  = iter > pars.maxIter;
     bool check_residual = residual < pars.tol;
+    
+    if ( check_maxIter )
+        stat.setExitFlag(1);
+    if ( check_residual )
+        stat.setExitFlag(0);
     
     return check_maxIter || check_residual;
 }
@@ -133,17 +137,32 @@ void Iterate::iterIncrement()
     iter ++;
 }
 
-vec Iterate::getIterx()
+vec Iterate::getIterx() const
 {
     return x;
 }
 
-vec Iterate::getIters()
+vec Iterate::getIters() const
 {
     return s;
 }
 
-vec Iterate::getItery()
+vec Iterate::getItery() const
 {
     return y;
+}
+
+int Iterate::getIterNum() const
+{
+    return iter;
+}
+
+double Iterate::getMu() const
+{
+    return mu;
+}
+
+double Iterate::getRes() const
+{
+    return residual;
 }

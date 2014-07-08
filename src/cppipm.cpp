@@ -7,6 +7,8 @@
 //
 
 #include "cppipm.h"
+#include <iostream>
+#include <iomanip>
 
 // Constructors
 cppipm::cppipm()
@@ -42,19 +44,48 @@ cppipm::cppipm(const mat &Q, const mat &A, const vec &b, const vec &c)
 // Driver
 void cppipm::solve()
 {
+    _printHeader(pars);
+    
     iter.initialPoint(prob);
+    
     while (true)
     {
-        iter.getResiduals(prob);
+        iter.calResiduals(prob);
+        _printIter(pars, iter);
         
-        if (iter.checkTermination(pars))
+        if (iter.checkTermination(pars, stat))
         {
             break;
         }
         
-        iter.getResiduals(prob);
+        iter.calResiduals(prob);
         iter.solveNewton(prob);
         iter.getStepSize(pars);
         iter.updateIter();
+        iter.iterIncrement();
+    }
+}
+
+// Print info
+void cppipm::_printHeader(const Parameters &pars)
+{
+    using namespace std;
+    if (pars.verbose > 0)
+        cout<<setw(10)<< "Iter";
+        cout<<setw(10)<<"Residual";
+        cout<<setw(10)<<"Mu" << "\n";
+}
+
+void cppipm::_printIter(const Parameters &pars, const Iterate &iter)
+{
+    using namespace std;
+    
+    if (pars.verbose > 0)
+    {
+        cout<<setw(10)<< iter.getIterNum();
+        cout<<setprecision(2)<<scientific;
+        cout<<setw(10)<<iter.getRes();
+        cout<<setw(10)<< iter.getMu();
+        cout<<"\n";
     }
 }

@@ -62,18 +62,21 @@ int main (int argc, char* argv[])
     iter.initialPoint(prob);
     while (true)
     {
-        iter.getResiduals(prob);
-        if (iter.checkTermination(pars))
+        iter.calResiduals(prob);
+        if (iter.checkTermination(pars, stat))
         {
             break;
         }
 
-        iter.getResiduals(prob);
+        iter.calResiduals(prob);
         iter.solveNewton(prob);
         iter.getStepSize(pars);
         iter.updateIter();
     }
     
+    // Check Status
+    std::cout<<"Changed status -> "<< stat.getExitFlag()<<"\n";
+
     // Test the cppipm as a whole
     //cppipm qp_test = cppipm(Q, A, b, c);
     //qp_test.solve();

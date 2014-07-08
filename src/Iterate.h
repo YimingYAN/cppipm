@@ -25,15 +25,19 @@ public:
     
     // functions
     void initialPoint(const Problem &prob);
-    void getResiduals(const Problem &prob);
-    bool checkTermination(const Parameters &pars);
+    void calResiduals(const Problem &prob);
+    bool checkTermination(const Parameters &pars, Status &stat);
     void solveNewton(const Problem &prob);
     void getStepSize(const Parameters &pars);
     void updateIter();
     void iterIncrement();
-    vec getIterx();
-    vec getItery();
-    vec getIters();
+    
+    vec getIterx() const;
+    vec getItery() const;
+    vec getIters() const;
+    int getIterNum() const;
+    double getMu() const;
+    double getRes() const;
     
     
     

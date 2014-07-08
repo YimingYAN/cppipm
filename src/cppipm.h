@@ -1,5 +1,5 @@
 /* CPPIPM
- * Class header for the interior point solver
+ * Header for the interior point solver
  *
  *
  * Created by Yiming Yan on 08/07/2014.
@@ -42,4 +42,10 @@ public:
     vec getOpty();
     int getIter();
     double getResiduals();
+    
+    //Internal functions
+    void _printHeader(const Parameters &pars);
+    void _printIter(const Parameters &pars, const Iterate &iter);
+    void _printFooter(const Parameters &pars, const Iterate &iter);
+    
 };
