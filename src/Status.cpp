@@ -16,6 +16,8 @@ Status::Status()
 
 void Status::setExitFlag(int newFlag)
 {
+    assert(newFlag >= 0);
+    
     exitFlag = newFlag;
 }
 

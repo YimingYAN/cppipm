@@ -1,9 +1,12 @@
 #include <iostream>
+#include <armadillo>
 #include <cassert>
 #include <cmath>
 #include "Problem.h"
 #include "Parameters.h"
-#include <armadillo>
+#include "Status.h"
+#include "Iterate.h"
+
 
 using namespace arma;
 int main (int argc, char* argv[])
@@ -23,13 +26,11 @@ int main (int argc, char* argv[])
     c(0) = 1; c(1) = -1;
 
     // Test Problems class
-    Problem prob(Q,A,b,c);
-    Problem lp(A,b,c);
+    Problem prob(Q,A,b,c);  //QP
+    Problem lp(A,b,c);      //LP
     
-    assert(Q.n_cols == prob.n);
-    assert(A.n_rows == prob.m);
-    assert(A.n_rows == lp.m);
-    assert(A.n_cols == lp.n);
+    assert(Q.n_cols == prob.n && A.n_rows == prob.m);
+    assert(A.n_rows == lp.m && A.n_cols == lp.n);
     
     
     // Test Parameters class
@@ -42,15 +43,25 @@ int main (int argc, char* argv[])
     pars.set_maxIter(maxIter);
     pars.set_setTol(tol);
     
-    assert(verbose == pars.verbose);
-    assert(maxIter = pars.maxIter);
-    assert(fabs(tol - pars.tol) < 1e-12 );
+    assert((verbose == pars.verbose) && (maxIter = pars.maxIter) && (fabs(tol - pars.tol) < 1e-12 ));
     
     Parameters pars2(1,2.2,1);
     
     assert( (pars2.verbose == 1) && (pars2.maxIter == 1) &&  (fabs(pars2.tol - 2.2) < 1e-12 ) );
     
-    // Test 
+    // Test Status class
+    Status stat;
+    int extflg = 2;
+    stat.setExitFlag(extflg);
+    assert( stat.getExitFlag() == extflg);
+    
+    //Test Iterate class
+    Iterate iter(prob, pars, stat);
+    
+    iter.initialPoint(prob);
+    iter.getIterx().print("x:");
+    iter.getResiduals(prob);
+    iter.solveNewton(prob);
     
 	return 0;
 }
