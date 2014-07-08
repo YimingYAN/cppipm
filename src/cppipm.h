@@ -43,6 +43,7 @@ public:
     int getIter();
     double getResiduals();
     
+private:
     //Internal functions
     void _printHeader(const Parameters &pars);
     void _printIter(const Parameters &pars, const Iterate &iter);
