@@ -44,6 +44,8 @@ cppipm::cppipm(const mat &Q, const mat &A, const vec &b, const vec &c)
 // Driver
 void cppipm::solve()
 {
+    wall_clock timer; timer.tic();
+    
     _printHeader(pars);
     
     iter.initialPoint(prob);
@@ -64,6 +66,8 @@ void cppipm::solve()
         iter.updateIter();
         iter.iterIncrement();
     }
+    
+    totalTime = timer.toc();
     _printFooter(pars, iter, stat);
 }
 
@@ -100,5 +104,9 @@ void cppipm::_printFooter(const Parameters &pars, const Iterate &iter, const Sta
         cout<<setfill('-')<<setw(30)<<"-"<<endl;
         cout<< "CPPIPM Terminated. ";
         cout<< "Status : "<<stat.getExitFlag() << endl;
+        cout<< "[Iters: "<< iter.getIterNum()<< "] ";
+        cout<<setprecision(2)<<scientific;
+        cout<< "[Time: "<<totalTime << "s]";
+        cout<< endl;
     }
 }

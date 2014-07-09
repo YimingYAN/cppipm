@@ -39,8 +39,6 @@ public:
     double getMu() const;
     double getRes() const;
     
-    
-    
 private:
     // internal properties
     int iter;
@@ -62,6 +60,10 @@ private:
     
     double alphax;      // Step size for primal vars
     double alphas;      // Step size for dual vars
+    
+    // internal function
+    void _initialPoint_simple(const Problem &prob);
+    void _initialPoint_mehrotra(const Problem &prob);
     
 };
 

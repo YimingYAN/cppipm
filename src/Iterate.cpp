@@ -18,15 +18,15 @@ Iterate::Iterate(const Problem &prob)
 {
     bc = std::max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
     iter = 0;
-    mu = 1000; // give a large number for initial mu;
+    mu = 1000; // give a large number to initialize mu;
 }
 
 void Iterate::initialPoint(const Problem &prob)
 {
+    
     // Simple starting point
-    x.ones(prob.n);
-    s.ones(prob.n);
-    y.zeros(prob.m);
+    //_initialPoint_simple(prob);
+    _initialPoint_mehrotra(prob);
 }
 
 void Iterate::calResiduals(const Problem &prob)
@@ -165,4 +165,42 @@ double Iterate::getMu() const
 double Iterate::getRes() const
 {
     return residual;
+}
+
+
+// Iternal functions
+void Iterate::_initialPoint_simple(const Problem &prob)
+{
+    // Simple starting point
+    x.ones(prob.n);
+    s.ones(prob.n);
+    y.zeros(prob.m);
+}
+
+void Iterate::_initialPoint_mehrotra(const Problem &prob)
+{
+    double delta_x, delta_s, delta_x_c, delta_s_c, pdct;
+    
+    // min norm(x) s.t. Ax = b
+    x = prob.A.t() * solve(prob.A*prob.A.t(), prob.b);
+    
+    // min norm(s) s.t. A'*y + s - Qx = c
+    y = solve(prob.A*prob.A.t(), prob.A*prob.c);
+    s = prob.c - prob.A.t()*y + prob.Q*x;
+    
+    
+    // delta_x and delta_s
+    delta_x = -1.5 * x.min();
+    delta_s = -1.5 * s.min();
+    
+    if (delta_x < 0) delta_x = 0;
+    if (delta_s < 0) delta_s = 0;
+    
+    // delta_x_c and delta_s_c
+    pdct = 0.5 * sum((x+delta_x) % (s+delta_s));
+    delta_x_c = delta_x+pdct/(sum(s)+prob.n*delta_s);
+    delta_s_c = delta_s+pdct/(sum(x)+prob.n*delta_x);
+    
+    x = x + delta_x_c;
+    s = s + delta_s_c;
 }

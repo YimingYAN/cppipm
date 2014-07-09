@@ -21,7 +21,6 @@ public:
     Iterate     iter;
     Status      stat;
     
-    
     // Overwrite the constractors
     cppipm();
     cppipm(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
@@ -39,8 +38,11 @@ public:
     vec getOpty();
     int getIter();
     double getResiduals();
+    double getTime();
     
 private:
+    double totalTime = 0.0;
+    
     //Internal functions
     void _printHeader(const Parameters &pars);
     void _printIter(const Parameters &pars, const Iterate &iter);
