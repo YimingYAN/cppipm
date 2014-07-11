@@ -104,8 +104,9 @@ void Iterate::solveNewton(const Problem &prob)
 
 void Iterate::getStepSize(const Parameters &pars)
 {
-    alphax = 1;
-    alphas = 1;
+    // Initialize the stepsize
+    alphax = 10.0;
+    alphas = 10.0;
     
     for (int i=0; i<dx.n_rows; i++)
     {
@@ -118,8 +119,8 @@ void Iterate::getStepSize(const Parameters &pars)
                 alphas = -s(i)/ds(i);
     }
     
-    alphax = pars.eta*alphax;
-    alphas = pars.eta*alphas;
+    alphax = std::min(pars.eta*alphax, 1.0);
+    alphas = std::min(pars.eta*alphas, 1.0);
 
     assert( all(x+alphax*dx > 0) );
     assert( all(s+alphas*ds > 0) );
