@@ -4,10 +4,11 @@ C++ implementation of the Interior Point Method (CPIPM)
 
 ###Requirements
 
-###Interface
+###How to use
 
 ###Example
 
+###Matlab Interface
 
 
 In the aim of learning C+++
