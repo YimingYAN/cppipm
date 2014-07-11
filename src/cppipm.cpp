@@ -101,7 +101,7 @@ void cppipm::_printFooter(const Parameters &pars, const Iterate &iter, const Sta
     
     if (pars.verbose >= 0)
     {
-        cout<<setfill('-')<<setw(30)<<"-"<<endl;
+        cout<<"----------------------------"<<endl;
         cout<< "CPPIPM Terminated. ";
         cout<< "Status : "<<stat.getExitFlag() << endl;
         cout<< "[Iters: "<< iter.getIterNum()<< "] ";
