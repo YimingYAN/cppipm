@@ -7,7 +7,7 @@
 #include "Status.h"
 #include "Iterate.h"
 #include "cppipm.h"
-
+#include "mpsReader.h"
 
 using namespace arma;
 int main (int argc, char* argv[])
@@ -83,6 +83,12 @@ int main (int argc, char* argv[])
     
     cppipm lp_test = cppipm(A, b, c);
     lp_test.solve();
+    
+    
+    // test read from QPS
+    cout<<endl;
+    cout << "test qps reader : "<<endl;
+    mpsReader fileInput("/Users/yimingyan/Dropbox/Github/cppipm/examples/QAFIRO.QPS");
     
 	return 0;
 }
