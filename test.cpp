@@ -30,7 +30,7 @@ int main (int argc, char* argv[])
     // test read from QPS
     cout<<endl;
     cout << "test qps reader : "<<endl;
-    mpsReader fileInput("/Users/yimingyan/Dropbox/Github/cppipm/examples/QAFIRO.QPS");
+    mpsReader fileInput("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB2.QPS");
     
 	return 0;
 }
