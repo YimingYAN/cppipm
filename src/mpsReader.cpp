@@ -3,12 +3,15 @@
 //  cppipm
 //
 //  Created by Yiming Yan on 11/07/2014.
-//  Copyright (c) 2014 Yiming. All rights reserved.
+//  Copyright (c) 2014 Yiming Yan. All rights reserved.
 //
 
 #include "mpsReader.h"
 #include <fstream>
 
+/*
+ * Constructor
+ */
 mpsReader::mpsReader(std::string fileName)
 {
     std::ifstream readFile(fileName);
@@ -18,34 +21,27 @@ mpsReader::mpsReader(std::string fileName)
         // get rid of comments or blank line
         _findPos2Start(readFile);
         
-        while (!readFile.eof())
-        {
-            // check field name
-            int field = _checkFieldName(readFile);
-            if (field == 1)
-                readFile >> Name;
-            else if (field == 2) {}
-            else if (field == 3) {}
-            else if (field == 4) {}
-            else if (field == 5) {}
-            else if (field == 6) {}
-            else if (field == 7) {}
-            else if (field == 8) {}
-            else if (field == 9) {}
-            else if (field == 10)
-            {
-                std::cout<< "End of file." <<std::endl;
-                readFile.close();
-                break;
-            }
-            else
-            {
-                std::string line;
-                getline(readFile, line);
-                //std::cout<<line<<std::endl;
-            }
-            
-        }
+        std::cout<<"+ Reading mps file"<<std::endl;
+        // get problem dimention
+        _preprocScan(readFile);
+        
+        // initilize matrices and vecrors
+        _initializeData();
+        
+        // Output data
+        std::cout<<"Name       : "<<Name<<std::endl;
+        std::cout<<"objsense   : "<<objsense<<std::endl;
+        std::cout<<"n_rows_eq  : "<<n_rows_eq<<std::endl;
+        std::cout<<"n_rows_inq : "<<n_rows_inq<<std::endl;
+        std::cout<<"n_cols     : "<<n_cols<<std::endl;
+        
+        // extract data
+        _extractData(readFile);
+        
+        readFile.close();
+        
+        // reformate to standard form
+        
     }
     else
     {
@@ -55,12 +51,123 @@ mpsReader::mpsReader(std::string fileName)
     readFile.close();
 }
 
-int mpsReader::_checkFieldName(std::ifstream &readFile)
+
+/*
+ * Internal functions
+ */
+
+void mpsReader::_extractData(std::ifstream &readFile)
 {
-    std::streampos pos = readFile.tellg();     // current position
-    std::string checkWord;  // first word
+    std::cout<< "  + Extracting data..." << std::endl;
+
+}
+
+void mpsReader::_preprocScan(std::ifstream &readFile)
+{
+    n_rows = 0;
+    n_rows_eq = 0;
+    n_rows_inq = 0;
+    n_cols = 0;
+    objsense = "";
     
-    readFile >> checkWord;
+    std::string tmp = "_";
+    // get first word of each line
+    std::string firstWord;
+    readFile >> firstWord;
+    //cout <<"1+" << firstWord << endl;
+    
+    while (!readFile.eof())
+    {
+        if ( !firstWord.empty() && firstWord.find("*") != 0)
+        {
+            if ( _checkFieldName(firstWord) == 10 )
+                break;
+            
+            if ( _checkFieldName(firstWord) == 8)
+                std::cout<< "Warning: MPSREASER - Currently cannot handle SOS"<<std::endl;
+            
+            if ( _checkFieldName(firstWord) == 9)
+                std::cout<< "Warning: MPSREASER - Currently cannot handle RANGES"<<std::endl;
+            
+            if ( _checkFieldName(firstWord) == 1 ) // name
+            {
+                readFile >> Name;
+                _nextLine(readFile);
+                readFile >> firstWord;
+            }
+            else if ( _checkFieldName(firstWord) == 2 ) //rows
+            {
+                readFile >> firstWord;
+                //cout <<"2+"<< firstWord << endl;
+
+                // count n_rows, n_rows_eq, n_rows_inq
+                while (_checkFieldName(firstWord) == -1)
+                {
+                    if ( firstWord.compare("E") == 0 )
+                    {
+                        n_rows++;
+                        n_rows_eq++;
+                    }
+                    else if ( firstWord.compare("L") == 0 )
+                    {
+                        n_rows++;
+                        n_rows_inq++;
+                    }
+                    else if ( firstWord.compare("G") == 0 )
+                    {
+                        n_rows++;
+                        n_rows_inq++;
+                    }
+                    else if ( firstWord.compare("N") == 0 )
+                    {
+                        n_rows++;
+                    }
+                    _nextLine(readFile);
+                    readFile >> firstWord;
+                    //cout <<"22+"<< firstWord << endl;
+                }
+            }
+            else if ( _checkFieldName(firstWord) == 3 ) // cols
+            {
+                // count columns
+                readFile >> firstWord;
+                //cout <<"3+"<< firstWord << endl;
+                
+                while (_checkFieldName(firstWord) == -1)
+                {
+                    if ( firstWord.compare(tmp) != 0 )
+                    {
+                        n_cols ++;
+                        tmp = firstWord;
+                    }
+                    _nextLine(readFile);
+                    readFile >> firstWord;
+                    //cout <<"33+"<< firstWord << endl;
+                }
+                
+            }
+            else if ( _checkFieldName(firstWord) == 7) // objsense
+            {
+                _nextLine(readFile);
+                readFile >> objsense;
+                readFile >> firstWord;
+                //cout <<"7+"<< firstWord << endl;
+            }
+            else
+            {
+                _nextLine(readFile);
+                readFile >> firstWord;
+                //cout<<"else: "<<firstWord<<endl;
+            }
+            
+        }
+    }
+    
+}
+
+
+int mpsReader::_checkFieldName(std::string checkWord) const
+{
     
     if (checkWord.compare("NAME") == 0)
         return 1;
@@ -83,17 +190,17 @@ int mpsReader::_checkFieldName(std::ifstream &readFile)
     else if (checkWord.compare("ENDATA") == 0)
         return 10;
     else
-        readFile.seekg(pos, std::ios::beg);   // go back one line
         return -1;
 }
 
 void mpsReader::_findPos2Start(std::ifstream &readFile)
 {
-    std::streampos pos = readFile.tellg();     // current position
+    std::streampos pos;
     std::string line;
     std::string firdWord;
     while (true)
     {
+        pos = readFile.tellg();
         getline(readFile, line);
         if ( line.empty() )
             continue;
@@ -105,4 +212,21 @@ void mpsReader::_findPos2Start(std::ifstream &readFile)
             break;
         }
     }
+}
+
+void mpsReader::_nextLine(std::ifstream &readFile)
+{
+    readFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+void mpsReader::_initializeData()
+{
+    Q   = mat(n_cols    , n_cols, fill::zeros);
+    A   = mat(n_rows_inq, n_cols, fill::zeros);
+    b   = vec(n_rows_inq,         fill::zeros);
+    Aeq = mat(n_rows_eq , n_cols, fill::zeros);
+    beq = vec(n_rows_eq ,         fill::zeros);
+    c   = vec(n_cols    ,         fill::zeros);
+    lb  = vec(n_cols    ,         fill::zeros);
+    ub  = vec(n_cols    ,         fill::zeros);
 }

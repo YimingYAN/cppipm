@@ -26,6 +26,18 @@ class mpsReader
 public:
     mpsReader(std::string fileName);
     std::string Name;
+    std:: string objsense;
+    
+    std::string rows;
+    int n_rows;
+    int n_rows_eq;
+    int n_rows_inq;
+    
+    std::string cols;
+    int n_cols;
+    
+    std::string row_labels;
+    std::string col_labels;
     mat Q;
     mat A;
     mat Aeq;
@@ -37,15 +49,31 @@ public:
     
 private:
     // internal properties
-    int n; // number of variables
-    int nrows; // number of rows
-    int ncols; // number of columns
     
     
     // Internal functions
+    void _extractData(std::ifstream &readFile);
+    /*
+     * extract data from the mps file
+     */
+    
+    void _nextLine(std::ifstream &readFile);
+    
     void _findPos2Start(std::ifstream &readFile);
     
-    int _checkFieldName(std::ifstream &readFile);
+    void _preprocScan(std::ifstream &readFile);
+    /*
+     This function scans the first string of each row in the
+     mps file to determine the problem dimensions, problem name 
+     and objective sense.
+     */
+    
+    void _initializeData();
+    /*
+     * Initialize the problem data Q, A ,b Aeq, beq, c, lb abd ub.
+     */
+    
+    int _checkFieldName(std::string checkWord) const;
     /* This function checks the field names. 
      * Return an interge ranging from 1 to 8
      * 1 - NAME
