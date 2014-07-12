@@ -28,19 +28,25 @@ mpsReader::mpsReader(std::string fileName)
         // initilize matrices and vecrors
         _initializeData();
         
-        // Output data
-        std::cout<<"Name       : "<<Name<<std::endl;
-        std::cout<<"objsense   : "<<objsense<<std::endl;
-        std::cout<<"n_rows_eq  : "<<n_rows_eq<<std::endl;
-        std::cout<<"n_rows_inq : "<<n_rows_inq<<std::endl;
-        std::cout<<"n_cols     : "<<n_cols<<std::endl;
-        
         // extract data
         _extractData(readFile);
         
         readFile.close();
         
-        // reformate to standard form
+        // Output data
+        
+        // verbose > 0
+        std::cout<<"Name       : "<<Name<<std::endl;
+        std::cout<<"objsense   : "<<objsense<<std::endl;
+        std::cout<<"n_rows_eq  : "<<n_rows_eq<<std::endl;
+        std::cout<<"n_rows_inq : "<<n_rows_inq<<std::endl;
+        std::cout<<"n_cols     : "<<n_cols<<std::endl;
+        // verbose > 1
+        Q.print("Q = ");
+        A.print("A = ");        b.print("b = ");
+        Aeq.print("Aeq = ");    beq.print("beq = ");
+        c.print("c = ");
+        lb.print("lb = ");      ub.print("ub = ");
         
     }
     else
