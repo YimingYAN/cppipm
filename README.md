@@ -1,6 +1,6 @@
 cppipm
 =====
-C++ implementation of the Interior Point Method (CPIPM)
+C++ implementation of the Interior Point Method (CPPIPM)
 
 ###Requirements
 
@@ -10,6 +10,7 @@ C++ implementation of the Interior Point Method (CPIPM)
 
 ###Matlab Interface
 
+##Technical details
 
 In the aim of learning C+++
 
