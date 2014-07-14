@@ -17,6 +17,7 @@
 #define cppipm_mpsReader_h
 
 #include<iostream>
+#include <vector>
 #include<armadillo>
 using namespace arma;
 
@@ -25,19 +26,21 @@ class mpsReader
 
 public:
     mpsReader(std::string fileName);
-    std::string Name;
-    std:: string objsense;
     
-    std::string rows;
+    std::string Name;
+    std::string objsense = "MIN";
+    
+    double infty = 1e32;
+    
     int n_rows;
     int n_rows_eq;
     int n_rows_inq;
-    
-    std::string cols;
     int n_cols;
     
-    std::string row_labels;
-    std::string col_labels;
+    std::vector<std::string> row_labels;    // E, G, L
+    std::vector<std::string> row_list;      // List of row names
+    std::vector<std::string> col_list;      // List of column names
+    
     mat Q;
     mat A;
     mat Aeq;
@@ -49,15 +52,26 @@ public:
     
 private:
     // internal properties
+    // pisitions
+    long col_pos;
+    long rhs_pos;
+    long bnd_pos;
+    long qdo_pos;
     
+    bool qdo_exist = false;
+    bool bnd_exist = false;
+    bool ranges_exist = false;
+    bool objsense_exist = false;
     
     // Internal functions
     void _extractData(std::ifstream &readFile);
     /*
      * extract data from the mps file
      */
-    
-    void _nextLine(std::ifstream &readFile);
+    void _getAraw(std::ifstream &readFile, mat &Araw);
+    void _getbraw(std::ifstream &readFile, vec &braw);
+    void _getBnds(std::ifstream &readFile);
+    void _getQdo(std::ifstream &readFile);
     
     void _findPos2Start(std::ifstream &readFile);
     
@@ -68,10 +82,6 @@ private:
      and objective sense.
      */
     
-    void _initializeData();
-    /*
-     * Initialize the problem data Q, A ,b Aeq, beq, c, lb abd ub.
-     */
     
     int _checkFieldName(std::string checkWord) const;
     /* This function checks the field names. 
@@ -88,8 +98,14 @@ private:
      *10 - ENDATA
      *-1 - unknown field
      */
-
     
+    void _initializeData();
+    /*
+     * Initialize the problem data Q, A ,b Aeq, beq, c, lb abd ub.
+     */
+    
+    void _nextLine(std::ifstream &readFile);
+    int _getIndex(std::vector<std::string> &list, std::string item) const;
     
 };
 

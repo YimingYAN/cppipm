@@ -25,6 +25,18 @@ mpsReader::mpsReader(std::string fileName)
         // get problem dimention
         _preprocScan(readFile);
         
+        // Output data
+        std::cout<<"\tName       : "<<Name<<std::endl;
+        std::cout<<"\tobjsense   : "<<objsense<<std::endl;
+        std::cout<<"\tn_rows_eq  : "<<n_rows_eq<<std::endl;
+        std::cout<<"\tn_rows_inq : "<<n_rows_inq<<std::endl;
+        std::cout<<"\tn_cols     : "<<n_cols<<std::endl;
+        for (int i = 0; i <row_labels.size(); i++)
+            std::cout<<"\trow_labels["<<i<<"] <-> row_list["<<i<<"] : " <<row_labels[i]<< " <-> "<< row_list[i] << std::endl;
+        for (int i = 0; i <col_list.size(); i++)
+            std::cout<<"\tcol_list["<<i<<"] :"<<col_list[i]<< std::endl;
+    
+        
         // initilize matrices and vecrors
         _initializeData();
         
@@ -32,22 +44,6 @@ mpsReader::mpsReader(std::string fileName)
         _extractData(readFile);
         
         readFile.close();
-        
-        // Output data
-        
-        // verbose > 0
-        std::cout<<"Name       : "<<Name<<std::endl;
-        std::cout<<"objsense   : "<<objsense<<std::endl;
-        std::cout<<"n_rows_eq  : "<<n_rows_eq<<std::endl;
-        std::cout<<"n_rows_inq : "<<n_rows_inq<<std::endl;
-        std::cout<<"n_cols     : "<<n_cols<<std::endl;
-        // verbose > 1
-        Q.print("Q = ");
-        A.print("A = ");        b.print("b = ");
-        Aeq.print("Aeq = ");    beq.print("beq = ");
-        c.print("c = ");
-        lb.print("lb = ");      ub.print("ub = ");
-        
     }
     else
     {
@@ -64,12 +60,37 @@ mpsReader::mpsReader(std::string fileName)
 
 void mpsReader::_extractData(std::ifstream &readFile)
 {
-    std::cout<< "  + Extracting data..." << std::endl;
-
+    std::cout<< "o Extracting data..." << std::endl;
+    
+    mat Araw(n_rows, n_cols, fill::zeros);
+    vec braw(n_rows, fill::zeros);
+    
+    // get Araw
+    _getAraw(readFile, Araw);
+    Araw.print("Araw: ");
+    
+    // get rhs
+    _getbraw(readFile, braw);
+    braw.print("braw: ");
+    
+    // get bounds
+    if (bnd_exist)
+        _getBnds(readFile);
+    lb.print("lb: ");    ub.print("ub: ");
+    
+    // get quadobj
+    if (qdo_exist)
+        _getQdo(readFile);
+    Q.print("Q: ");
+    
+    // reformulate Araw and braw
+    cout<< "reformulate - NOT DONE"<<endl;
 }
 
 void mpsReader::_preprocScan(std::ifstream &readFile)
 {
+    std::cout<< "o Preprocsssing data..." << std::endl;
+    
     n_rows = 0;
     n_rows_eq = 0;
     n_rows_inq = 0;
@@ -77,6 +98,7 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
     objsense = "";
     
     std::string tmp = "_";
+    std::string tmpItem = "";
     // get first word of each line
     std::string firstWord;
     readFile >> firstWord;
@@ -103,23 +125,19 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
             }
             else if ( _checkFieldName(firstWord) == 2 ) //rows
             {
+                // update firstWord and row_list
                 readFile >> firstWord;
-                //cout <<"2+"<< firstWord << endl;
 
-                // count n_rows, n_rows_eq, n_rows_inq
                 while (_checkFieldName(firstWord) == -1)
                 {
+   
+                    // count n_rows, n_rows_eq, n_rows_inq
                     if ( firstWord.compare("E") == 0 )
                     {
                         n_rows++;
                         n_rows_eq++;
                     }
-                    else if ( firstWord.compare("L") == 0 )
-                    {
-                        n_rows++;
-                        n_rows_inq++;
-                    }
-                    else if ( firstWord.compare("G") == 0 )
+                    else if ( firstWord.compare("L") == 0 || firstWord.compare("G") == 0)
                     {
                         n_rows++;
                         n_rows_inq++;
@@ -128,42 +146,74 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                     {
                         n_rows++;
                     }
+                    // store row labels
+                    row_labels.push_back(firstWord);
+                    
+                    // get row_list
+                    readFile >> tmpItem;
+                    row_list.push_back(tmpItem);
+                    
                     _nextLine(readFile);
                     readFile >> firstWord;
-                    //cout <<"22+"<< firstWord << endl;
                 }
             }
             else if ( _checkFieldName(firstWord) == 3 ) // cols
             {
-                // count columns
+                // get postion
+                col_pos = readFile.tellg();
+
                 readFile >> firstWord;
-                //cout <<"3+"<< firstWord << endl;
                 
-                while (_checkFieldName(firstWord) == -1)
+                while (_checkFieldName(firstWord) == -1) // continue if the keyword is not a feild name
                 {
                     if ( firstWord.compare(tmp) != 0 )
                     {
+                        // update column list
+                        col_list.push_back(firstWord);
+                        
+                        // count columns
                         n_cols ++;
                         tmp = firstWord;
                     }
                     _nextLine(readFile);
                     readFile >> firstWord;
-                    //cout <<"33+"<< firstWord << endl;
                 }
                 
             }
+            else if ( _checkFieldName(firstWord) == 4) //rhs
+            {
+                rhs_pos = readFile.tellg();
+                _nextLine(readFile);
+                readFile >> firstWord;
+            }
+            else if ( _checkFieldName(firstWord) == 5) //bounds
+            {
+                bnd_exist = true;
+                
+                bnd_pos = readFile.tellg();
+                _nextLine(readFile);
+                readFile >> firstWord;
+            }
+            else if ( _checkFieldName(firstWord) == 6) //quadobj
+            {
+                qdo_exist = true;
+                
+                qdo_pos = readFile.tellg();
+                _nextLine(readFile);
+                readFile >> firstWord;
+            }
             else if ( _checkFieldName(firstWord) == 7) // objsense
             {
+                objsense = true;
+                
                 _nextLine(readFile);
                 readFile >> objsense;
                 readFile >> firstWord;
-                //cout <<"7+"<< firstWord << endl;
             }
             else
             {
                 _nextLine(readFile);
                 readFile >> firstWord;
-                //cout<<"else: "<<firstWord<<endl;
             }
             
         }
@@ -201,7 +251,7 @@ int mpsReader::_checkFieldName(std::string checkWord) const
 
 void mpsReader::_findPos2Start(std::ifstream &readFile)
 {
-    std::streampos pos;
+    long pos;
     std::string line;
     std::string firdWord;
     while (true)
@@ -225,6 +275,16 @@ void mpsReader::_nextLine(std::ifstream &readFile)
     readFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
+int mpsReader::_getIndex(std::vector<std::string> &list, std::string item) const
+{
+    int idx = (int) (std::find(list.begin(), list.end(), item) - list.begin());
+    
+    if( idx >= list.size() )
+        idx = -1;
+    
+    return idx;
+}
+
 void mpsReader::_initializeData()
 {
     Q   = mat(n_cols    , n_cols, fill::zeros);
@@ -234,5 +294,138 @@ void mpsReader::_initializeData()
     beq = vec(n_rows_eq ,         fill::zeros);
     c   = vec(n_cols    ,         fill::zeros);
     lb  = vec(n_cols    ,         fill::zeros);
-    ub  = vec(n_cols    ,         fill::zeros);
+    ub  = vec(n_cols);  ub.fill(infty);
+    
+    objsense = "MIN";
+}
+
+void mpsReader::_getAraw(std::ifstream &readFile, mat &Araw)
+{
+    std::string line, colName, rowName;
+    double value;
+    int colIdx = 0, rowIdx = 0;
+    
+    // go to the the postion of cols
+    readFile.seekg(col_pos, std::ios::beg);
+    _nextLine(readFile);
+    do
+    {
+        // clear
+        colName = "";  rowName = ""; value = 0.0;
+        
+        // read one line
+        getline(readFile, line);
+        std::istringstream thisLine(line);
+        
+        thisLine >> colName;
+        
+        // break if get to next field
+        if (_checkFieldName(colName) != -1)
+            break;
+        
+        // get col index
+        colIdx = _getIndex(col_list, colName);
+        
+        while (thisLine >> rowName >> value)
+        {
+            // get row index
+            rowIdx = _getIndex(row_list, rowName);
+            
+            Araw(rowIdx,colIdx) = value;
+        }
+        
+    } while (true);
+}
+
+void mpsReader::_getbraw(std::ifstream &readFile, vec &braw)
+{
+    std::string line, colName, rowName;
+    double value;
+    int rowIdx = 0;
+    // go to the position of rhs
+    readFile.seekg(rhs_pos, std::ios::beg);
+    _nextLine(readFile);
+    
+    do
+    {
+        // read one line
+        getline(readFile, line);
+        std::istringstream thisLine(line);
+        
+        thisLine >> colName;
+        
+        if ( _checkFieldName(colName) != -1 )
+            break;
+        
+        while (thisLine >> rowName >> value)
+        {
+            // get row index
+            rowIdx = _getIndex(row_list, rowName);
+            
+            braw(rowIdx) = value;
+        }
+        
+    } while (true);
+}
+
+void mpsReader::_getBnds(std::ifstream &readFile)
+{
+    std::string label, colName, rowName;
+    
+    double value;
+    
+    int colIdx = 0;
+
+    readFile.seekg(bnd_pos, std::ios::beg);
+    _nextLine(readFile);
+    
+    do
+    {
+        readFile >> label >> rowName >> colName >> value;
+        colIdx = _getIndex(col_list, colName);
+            
+        if (label == "LO")
+            lb(colIdx) = value;
+        else if (label == "UP")
+            ub(colIdx) = value;
+        else if (label == "FX") // fixed value
+        {
+            lb(colIdx) = value;
+            ub(colIdx) = value;
+        }
+        else if (label == "FR") // free variables
+        {
+            lb(colIdx) = -infty;
+            ub(colIdx) = infty;
+        }
+        
+    } while (_checkFieldName(label) == -1);
+}
+
+void mpsReader::_getQdo(std::ifstream &readFile)
+{
+    std::string colName1, colName2;
+    
+    double value;
+    
+    int colIdx1 = 0, colIdx2 = 0;
+
+    readFile.seekg(qdo_pos, std::ios::beg);
+    _nextLine(readFile);
+    
+    while (true)
+    {
+        readFile >> colName1 >> colName2 >> value;
+        colIdx1 = _getIndex(col_list, colName1);
+        
+        if (_checkFieldName(colName1) != -1)
+            break;
+        
+        colIdx2 = _getIndex(col_list, colName2);
+        
+        Q(colIdx1,colIdx2) = value;
+        
+        if (colIdx1 != colIdx2)
+            Q(colIdx2,colIdx1) = value;
+    }
 }

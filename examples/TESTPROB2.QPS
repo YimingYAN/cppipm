@@ -7,7 +7,7 @@ ROWS
  L  LIM1
  G  LIM2
  E  MYEQN
-COLUMNS
+COLUMNS      
     XONE      COST                 1   LIM1                 1
     XONE      LIM2                 1
     YTWO      COST                 4   LIM1                 1
@@ -21,4 +21,8 @@ BOUNDS
  UP BND1      XONE                 4
  LO BND1      YTWO                -1
  UP BND1      YTWO                 1
+QUADOBJ
+    XONE      XONE                 2
+    XONE      YTWO                 1
+    ZTHREE    YTWO                 0.5
 ENDATA

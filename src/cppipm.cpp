@@ -76,9 +76,13 @@ void cppipm::_printHeader(const Parameters &pars)
 {
     using namespace std;
     if (pars.verbose > 0)
+    {
+        ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< "Iter";
         cout<<setw(10)<<"Residual";
         cout<<setw(10)<<"Mu" << "\n";
+        cout.flags(old_settings);
+    }
 }
 
 void cppipm::_printIter(const Parameters &pars, const Iterate &iter)
@@ -87,11 +91,13 @@ void cppipm::_printIter(const Parameters &pars, const Iterate &iter)
     
     if (pars.verbose > 0)
     {
+        ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< iter.getIterNum();
         cout<<setprecision(2)<<scientific;
         cout<<setw(10)<<iter.getRes();
         cout<<setw(10)<< iter.getMu();
         cout<<endl;
+        cout.flags(old_settings);
     }
 }
 
@@ -101,6 +107,7 @@ void cppipm::_printFooter(const Parameters &pars, const Iterate &iter, const Sta
     
     if (pars.verbose >= 0)
     {
+        ios::fmtflags old_settings = cout.flags();
         cout<<"----------------------------"<<endl;
         cout<< "CPPIPM Terminated. ";
         cout<< "Status : "<<stat.getExitFlag() << endl;
@@ -108,5 +115,6 @@ void cppipm::_printFooter(const Parameters &pars, const Iterate &iter, const Sta
         cout<<setprecision(2)<<scientific;
         cout<< "[Time: "<<totalTime << "s]";
         cout<< endl;
+        cout.flags(old_settings);
     }
 }
