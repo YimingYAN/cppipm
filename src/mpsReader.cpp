@@ -15,27 +15,17 @@
 mpsReader::mpsReader(std::string fileName)
 {
     std::ifstream readFile(fileName);
-
+    
     if (readFile.is_open())
     {
+        wall_clock timer;
+        timer.tic();
+        
         // get rid of comments or blank line
         _findPos2Start(readFile);
         
-        std::cout<<"+ Reading mps file"<<std::endl;
         // get problem dimention
         _preprocScan(readFile);
-        
-        // Output data
-        std::cout<<"\tName       : "<<Name<<std::endl;
-        std::cout<<"\tobjsense   : "<<objsense<<std::endl;
-        std::cout<<"\tn_rows_eq  : "<<n_rows_eq<<std::endl;
-        std::cout<<"\tn_rows_inq : "<<n_rows_inq<<std::endl;
-        std::cout<<"\tn_cols     : "<<n_cols<<std::endl;
-        for (int i = 0; i <row_labels.size(); i++)
-            std::cout<<"\trow_labels["<<i<<"] <-> row_list["<<i<<"] : " <<row_labels[i]<< " <-> "<< row_list[i] << std::endl;
-        for (int i = 0; i <col_list.size(); i++)
-            std::cout<<"\tcol_list["<<i<<"] :"<<col_list[i]<< std::endl;
-    
         
         // initilize matrices and vecrors
         _initializeData();
@@ -44,10 +34,17 @@ mpsReader::mpsReader(std::string fileName)
         _extractData(readFile);
         
         readFile.close();
+        time = timer.toc();
+        
+        // output
+        _printData();
+        
+
     }
     else
     {
         std::cout<<"Error: MPSREADER - File not found"<<std::endl;
+        time  = 0.0;
     }
     
     readFile.close();
@@ -60,37 +57,33 @@ mpsReader::mpsReader(std::string fileName)
 
 void mpsReader::_extractData(std::ifstream &readFile)
 {
-    std::cout<< "o Extracting data..." << std::endl;
-    
     mat Araw(n_rows, n_cols, fill::zeros);
     vec braw(n_rows, fill::zeros);
     
     // get Araw
     _getAraw(readFile, Araw);
-    Araw.print("Araw: ");
+    //Araw.print("Araw: ");
     
     // get rhs
     _getbraw(readFile, braw);
-    braw.print("braw: ");
+    //braw.print("braw: ");
     
     // get bounds
     if (bnd_exist)
         _getBnds(readFile);
-    lb.print("lb: ");    ub.print("ub: ");
+    
     
     // get quadobj
     if (qdo_exist)
         _getQdo(readFile);
-    Q.print("Q: ");
     
-    // reformulate Araw and braw
-    cout<< "reformulate - NOT DONE"<<endl;
+    // split Araw to A, Aeq, c
+    // and splict braw to b and beq
+    _splitRaw(Araw, braw, c, A, b, Aeq, beq);
 }
 
 void mpsReader::_preprocScan(std::ifstream &readFile)
 {
-    std::cout<< "o Preprocsssing data..." << std::endl;
-    
     n_rows = 0;
     n_rows_eq = 0;
     n_rows_inq = 0;
@@ -270,21 +263,6 @@ void mpsReader::_findPos2Start(std::ifstream &readFile)
     }
 }
 
-void mpsReader::_nextLine(std::ifstream &readFile)
-{
-    readFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-}
-
-int mpsReader::_getIndex(std::vector<std::string> &list, std::string item) const
-{
-    int idx = (int) (std::find(list.begin(), list.end(), item) - list.begin());
-    
-    if( idx >= list.size() )
-        idx = -1;
-    
-    return idx;
-}
-
 void mpsReader::_initializeData()
 {
     Q   = mat(n_cols    , n_cols, fill::zeros);
@@ -428,4 +406,75 @@ void mpsReader::_getQdo(std::ifstream &readFile)
         if (colIdx1 != colIdx2)
             Q(colIdx2,colIdx1) = value;
     }
+}
+
+void mpsReader::_splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b, mat &Aeq, vec &beq)
+{
+    int counter_eq = 0, counter_inq = 0;
+    for (int i=0; i< n_rows; i++)
+    {
+        if (row_labels[i] == "N")
+            c = trans( Araw.row(i) );
+        else if (row_labels[i] == "E")
+        {
+            Aeq.row(counter_eq) = Araw.row(i);
+            beq.row(counter_eq) = braw.row(i);
+            counter_eq ++;
+        }
+        else if (row_labels[i] == "L")
+        {
+            A.row(counter_inq) = Araw.row(i);
+            b.row(counter_inq) = braw.row(i);
+            counter_inq ++;
+        }
+        else if (row_labels[i] == "G")
+        {
+            A.row(counter_inq) = -Araw.row(i);
+            b.row(counter_inq) = -braw.row(i);
+            counter_inq ++;
+        }
+        
+    }
+}
+
+void mpsReader::_nextLine(std::ifstream &readFile)
+{
+    readFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+int mpsReader::_getIndex(std::vector<std::string> &list, std::string item) const
+{
+    int idx = (int) (std::find(list.begin(), list.end(), item) - list.begin());
+    
+    if( idx >= list.size() )
+        idx = -1;
+    
+    return idx;
+}
+
+void mpsReader::_printData()
+{
+    
+    // Output data
+    std::cout<<"\tName       : "<<Name<<std::endl;
+    std::cout<<"\tobjsense   : "<<objsense<<std::endl;
+    std::cout<<"\tn_rows_eq  : "<<n_rows_eq<<std::endl;
+    std::cout<<"\tn_rows_inq : "<<n_rows_inq<<std::endl;
+    std::cout<<"\tn_cols     : "<<n_cols<<std::endl;
+    for (int i = 0; i <row_labels.size(); i++)
+        std::cout<<"\trow_labels["<<i<<"] <-> row_list["<<i<<"] : " <<row_labels[i]<< " <-> "<< row_list[i] << std::endl;
+    for (int i = 0; i <col_list.size(); i++)
+        std::cout<<"\tcol_list["<<i<<"] :"<<col_list[i]<< std::endl;
+    
+    Q.print("Q: ");
+    c.print("c: ");
+    A.print("A: ");
+    b.print("b ");
+    Aeq.print("Aeq: ");
+    beq.print("beq: ");
+    lb.print("lb: ");
+    ub.print("ub: ");
+    
+    std::cout<<"---------------------"<<std::endl;
+    std::cout<<"MPS file read. Time = [ "<<time<<"s ]"<<std::endl;
 }

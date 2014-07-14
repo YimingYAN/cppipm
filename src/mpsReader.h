@@ -27,6 +27,8 @@ class mpsReader
 public:
     mpsReader(std::string fileName);
     
+    double time;
+    
     std::string Name;
     std::string objsense = "MIN";
     
@@ -60,7 +62,7 @@ private:
     
     bool qdo_exist = false;
     bool bnd_exist = false;
-    bool ranges_exist = false;
+    bool ranges_exist = false;      // currently not used
     bool objsense_exist = false;
     
     // Internal functions
@@ -72,6 +74,7 @@ private:
     void _getbraw(std::ifstream &readFile, vec &braw);
     void _getBnds(std::ifstream &readFile);
     void _getQdo(std::ifstream &readFile);
+    void _splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b, mat &Aeq, vec &beq);
     
     void _findPos2Start(std::ifstream &readFile);
     
@@ -106,7 +109,7 @@ private:
     
     void _nextLine(std::ifstream &readFile);
     int _getIndex(std::vector<std::string> &list, std::string item) const;
-    
+    void _printData();
 };
 
 
