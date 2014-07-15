@@ -71,7 +71,7 @@ void Iterate::solveNewton(const Problem &prob)
     mat M_R1(prob.n, prob.m+prob.n);
     mat M_R2(prob.m, prob.m+prob.n);
     mat M(prob.m + prob.n, prob.m + prob.n);
-    vec rhs(prob.n,prob.m);
+    vec rhs(prob.n + prob.m);
     mat R(prob.m + prob.n, prob.m + prob.n);
     mat Q(prob.m + prob.n, prob.m + prob.n);
     vec theta(prob.n);
@@ -81,7 +81,7 @@ void Iterate::solveNewton(const Problem &prob)
     theta = s/x;
     
     M_R1 = join_horiz( -prob.Q-diagmat(theta), prob.A.t());
-    M_R2 = join_horiz( prob.A,                 vec(prob.m, prob.m, fill::zeros) );
+    M_R2 = join_horiz( prob.A,                 mat(prob.m, prob.m, fill::zeros) );
     M = join_vert(M_R1, M_R2);
     
     rhs = join_vert(Rd - Rm/x, Rp);
