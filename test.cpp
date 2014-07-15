@@ -28,33 +28,53 @@ int main (int argc, char* argv[])
     cppipm lp_test = cppipm(A, b, c);
     lp_test.solve();
     
+    
+    // test read from QPS
+    cout << "\nTest qps reader : "<<endl;
+
+    mat Qs, As;
+    vec bs, cs;
+    
     try
     {
-        // test read from QPS
-        cout << "\nTest qps reader : "<<endl;
-    
-        mat Qs, As;
-        vec bs, cs;
-    
         cout<< "\n++++++ TESTPROB " <<endl;
         mpsReader mpsTESTPROB("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB.QPS");
         mpsTESTPROB.trans2standardForm(Qs, As, bs, cs);
         cppipm mps_testprob_test = cppipm(Qs, As, bs, cs);
         mps_testprob_test.solve();
-    
-
+    }
+    catch (...)
+    {
+        cout<< "ah....TESTPROB"<<endl;
+    }
+        
+    try {
         cout<< "\n++++++ TESTPROB2" <<endl;
         mpsReader mpsTESTPROB2("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB2.QPS");
         mpsTESTPROB2.trans2standardForm(Qs, As, bs, cs);
         cppipm mps_testprob2_test = cppipm(Qs, As, bs, cs);
         mps_testprob2_test.solve();
+    }
+    catch (...)
+    {
+        cout<< "ah....TESTPROB2"<<endl;
+    }
     
+    try
+    {
         cout<< "\n+++++ QAFIRO " <<endl;
         mpsReader mpsQAFIRO("/Users/yimingyan/Dropbox/Github/cppipm/examples/QAFIRO.QPS");
         mpsQAFIRO.trans2standardForm(Qs, As, bs, cs);
         cppipm mps_qafiro_test = cppipm(Qs, As, bs, cs);
         mps_qafiro_test.solve();
-        
+    }
+    catch (...)
+    {
+        cout<< "ah....QAFIRO"<<endl;
+    }
+    
+    try
+    {
         cout<< "\n+++++ SIMPLE" <<endl;
         mpsReader mpsSIMPLE("/Users/yimingyan/Dropbox/Github/cppipm/examples/SIMPLE.QPS");
         mpsSIMPLE.trans2standardForm(Qs, As, bs, cs);
@@ -63,7 +83,7 @@ int main (int argc, char* argv[])
     }
     catch (...)
     {
-        cout<< "ah...."<<endl;
+        cout<< "ah....SIMPLE"<<endl;
     }
     
 	return 0;
