@@ -28,36 +28,43 @@ int main (int argc, char* argv[])
     cppipm lp_test = cppipm(A, b, c);
     lp_test.solve();
     
+    try
+    {
+        // test read from QPS
+        cout << "\nTest qps reader : "<<endl;
     
-    // test read from QPS
-    cout << "\nTest qps reader : "<<endl;
-    cout<< "\n+++++ QAFIRO " <<endl;
-    mpsReader mpsQAFIRO("/Users/yimingyan/Dropbox/Github/cppipm/examples/QAFIRO.QPS");
-    mat Qs, As;
-    vec bs, cs;
+        mat Qs, As;
+        vec bs, cs;
     
-    mpsQAFIRO.trans2standardForm(Qs, As, bs, cs);
-    cppipm mps_qafiro_test = cppipm(Qs, As, bs, cs);
-    mps_qafiro_test.solve();
+        cout<< "\n++++++ TESTPROB " <<endl;
+        mpsReader mpsTESTPROB("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB.QPS");
+        mpsTESTPROB.trans2standardForm(Qs, As, bs, cs);
+        cppipm mps_testprob_test = cppipm(Qs, As, bs, cs);
+        mps_testprob_test.solve();
     
+
+        cout<< "\n++++++ TESTPROB2" <<endl;
+        mpsReader mpsTESTPROB2("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB2.QPS");
+        mpsTESTPROB2.trans2standardForm(Qs, As, bs, cs);
+        cppipm mps_testprob2_test = cppipm(Qs, As, bs, cs);
+        mps_testprob2_test.solve();
     
-    cout<< "\n++++++ TESTPROB " <<endl;
-    mpsReader mpsTESTPROB("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB.QPS");
-    mpsTESTPROB.trans2standardForm(Qs, As, bs, cs);
-    cppipm mps_testprob_test = cppipm(Qs, As, bs, cs);
-    mps_testprob_test.solve();
-    
-    cout<< "\n++++++ TESTPROB2" <<endl;
-    mpsReader mpsTESTPROB2("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB2.QPS");
-    mpsTESTPROB2.trans2standardForm(Qs, As, bs, cs);
-    cppipm mps_testprob2_test = cppipm(Qs, As, bs, cs);
-    mps_testprob2_test.solve();
-    
-    cout<< "\n+++++ SIMPLE" <<endl;
-    mpsReader mpsSIMPLE("/Users/yimingyan/Dropbox/Github/cppipm/examples/SIMPLE.QPS");
-    mpsSIMPLE.trans2standardForm(Qs, As, bs, cs);
-    cppipm mps_simple_test = cppipm(Qs, As, bs, cs);
-    mps_simple_test.solve();
+        cout<< "\n+++++ QAFIRO " <<endl;
+        mpsReader mpsQAFIRO("/Users/yimingyan/Dropbox/Github/cppipm/examples/QAFIRO.QPS");
+        mpsQAFIRO.trans2standardForm(Qs, As, bs, cs);
+        cppipm mps_qafiro_test = cppipm(Qs, As, bs, cs);
+        mps_qafiro_test.solve();
+        
+        cout<< "\n+++++ SIMPLE" <<endl;
+        mpsReader mpsSIMPLE("/Users/yimingyan/Dropbox/Github/cppipm/examples/SIMPLE.QPS");
+        mpsSIMPLE.trans2standardForm(Qs, As, bs, cs);
+        cppipm mps_simple_test = cppipm(Qs, As, bs, cs);
+        mps_simple_test.solve();
+    }
+    catch (...)
+    {
+        cout<< "ah...."<<endl;
+    }
     
 	return 0;
 }
