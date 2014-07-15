@@ -8,7 +8,7 @@
 
 #include "mpsReader.h"
 #include <fstream>
-
+#include <cassert>
 /*
  * Constructor
  */
@@ -48,6 +48,69 @@ mpsReader::mpsReader(std::string fileName)
     }
     
     readFile.close();
+}
+/*
+ * Public functions
+ */
+int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
+{
+    cout<< "Tranforming to the standard form..."<<endl;
+    assert( lb.min() > - infty);
+    
+    mat tmp;
+    
+    
+    int n_ubounds = 0;
+    for (int i=0;i < ub.size(); i++)
+    {
+        if (fabs(ub(i) - infty) > 1)
+         n_ubounds ++;
+    }
+    
+    As = mat(n_rows_eq+n_rows_inq+n_ubounds, n_cols+n_rows_inq, fill::zeros);
+    bs = vec(n_rows_eq+n_rows_inq+n_ubounds);
+    Qs = mat(n_cols + n_rows_inq, n_cols + n_rows_inq, fill::zeros);
+    cs = vec(n_cols+n_rows_inq);
+    
+    // bs <--- (b-A*lb, beq-Aeq*lb, 0)
+    bs.rows(0, n_rows_inq-1) = b - A*lb;
+    bs.rows(n_rows_inq, n_rows_eq + n_rows_inq-1) = beq - Aeq*lb;
+    
+    // As <--- [ A I_(n_rows_inq); Aeq 0; 0 0]
+    tmp = mat(n_rows_inq, n_rows_inq);
+    tmp.eye();
+    
+    As(0, 0, size(A)) = A;
+    As(0, n_cols, size(tmp)) = tmp;
+    As(n_rows_inq, 0, size(Aeq)) = Aeq;
+    
+    
+    // Qs <--- [Q 0; 0 0]
+    Qs(0, 0, size(Q)) = Q;
+    
+    // cs <--- [c + 2*Q*lb; 0]
+    cs.rows(0,n_cols-1) = c + 2*Q*lb;
+    
+    
+    // append [0 0 0 ... 0 1 0 ...0] to As
+    // and ub_i- lb+i to bs;
+    int counter = 0;
+    for (int i = 0; i < ub.size(); i++)
+    {
+        if (fabs(ub(i) - infty) > 1)
+        {
+            As(n_rows_inq + n_rows_eq + counter, i) = 1;
+            bs(n_rows_inq + n_rows_eq + counter) = ub(i) - lb(i);
+            counter ++;
+        }
+        
+    }
+    
+    Qs.print("Qs = ");
+    As.print("As = ");
+    bs.print("bs = ");
+    cs.print("cd = ");
+    return 0;
 }
 
 
@@ -101,15 +164,25 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
     {
         if ( !firstWord.empty() && firstWord.find("*") != 0)
         {
+            // ======= check termination ======
             if ( _checkFieldName(firstWord) == 10 )
                 break;
             
             if ( _checkFieldName(firstWord) == 8)
-                std::cout<< "Warning: MPSREASER - Currently cannot handle SOS"<<std::endl;
+            {
+                std::cout<< "Error: MPSREASER - Currently cannot handle SOS"<<std::endl;
+                break;
+            }
             
             if ( _checkFieldName(firstWord) == 9)
-                std::cout<< "Warning: MPSREASER - Currently cannot handle RANGES"<<std::endl;
+            {
+                std::cout<< "Error: MPSREASER - Currently cannot handle RANGES"<<std::endl;
+                break;
+            }
             
+            // ======= end check termination ======
+            
+            // ======= preprocess fields termination ======
             if ( _checkFieldName(firstWord) == 1 ) // name
             {
                 readFile >> Name;
@@ -203,11 +276,12 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                 readFile >> objsense;
                 readFile >> firstWord;
             }
-            else
+            else                                        // not a keywod of fields
             {
                 _nextLine(readFile);
                 readFile >> firstWord;
             }
+            // ======= end preprocess fields termination ======
             
         }
     }
@@ -366,16 +440,20 @@ void mpsReader::_getBnds(std::ifstream &readFile)
             lb(colIdx) = value;
         else if (label == "UP")
             ub(colIdx) = value;
-        else if (label == "FX") // fixed value
+        else
         {
-            lb(colIdx) = value;
-            ub(colIdx) = value;
+            std::cout<< "Error: MPSREADER unrecognised label."<<endl;
         }
-        else if (label == "FR") // free variables
-        {
-            lb(colIdx) = -infty;
-            ub(colIdx) = infty;
-        }
+        //else if (label == "FX") // fixed value
+        //{
+        //    lb(colIdx) = value;
+        //    ub(colIdx) = value;
+        //}
+        //else if (label == "FR") // free variables
+        //{
+        //    lb(colIdx) = -infty;
+        //    ub(colIdx) = infty;
+        //}
         
     } while (_checkFieldName(label) == -1);
 }

@@ -11,6 +11,42 @@
  *      Ax <= b
  *      Aeq x = beq
  *      lb <= x <= ub
+ *
+ * After call trans2standardForm() function, we get
+ * min 1/2 x'Qx + c'x
+ * s.t.
+ *      Ax = b
+ *      x >= 0
+ *
+ *
+ * Accepted format: mps, qps, free fromatted mps, 
+ * free formatted qps
+ *  
+ * The folloiwng are from 
+ *      http://lpsolve.sourceforge.net/5.5/mps-format.htm
+ *
+ * In the ROWS section, each row of the constraint matrix must have a
+ * row type and a row name specified. The code for indicating row type
+ * is as follows:
+ *
+ *      type        meaning
+ * ---------------------------
+ *      E           equality
+ *      L           less than or equal
+ *      G           greater than or equal
+ *      N           objective
+ *
+ * *** N will only be recognised as objective function.
+ * 
+ * RANGES are not accepted currently.
+ *
+ * For BOUNDS, we accept only 
+ *      type            meaning
+ *  ---------------------------------------------------
+ *      LO              lower bound        lb <= x (< +inf)
+ *      UP              upper bound        (0 <=) x <= ub
+ *
+ * *** Thus lb is always finite.
  */
 
 #ifndef cppipm_mpsReader_h
@@ -32,13 +68,13 @@ public:
     std::string Name;
     std::string objsense = "MIN";
     
-    double infty = 1e32;
+    double infty = 1e31;
     
     int n_rows;
     int n_rows_eq;
     int n_rows_inq;
     int n_cols;
-    
+
     std::vector<std::string> row_labels;    // E, G, L
     std::vector<std::string> row_list;      // List of row names
     std::vector<std::string> col_list;      // List of column names
@@ -51,6 +87,15 @@ public:
     vec lb;
     vec ub;
     vec c;
+    
+    //public functions
+    int trans2standardForm(mat& Qs, mat& As, vec& bs, vec &cs);
+    /*
+     * trans2standardForm - new data will be stored in (Qs, As, bs, cs)
+     * return 0 if successful.
+     * If x* is the optimal solution of the standard form, then x* + lb
+     * is an optimal solution of the original problem 
+     */
     
 private:
     // internal properties
