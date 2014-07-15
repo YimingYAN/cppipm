@@ -12,7 +12,6 @@ C++ implementation of the Interior Point Method (CPPIPM)
 
 ##Technical details
 
-In the aim of learning C+++
 
 ----
 Yiming Yan
