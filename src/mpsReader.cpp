@@ -52,11 +52,10 @@ mpsReader::mpsReader(std::string fileName)
  */
 int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
 {
-    cout<< "Tranforming to the standard form..."<<endl;
+    //cout<< "Tranforming to the standard form..."<<endl;
     assert( lb.min() > - infty);
     
     mat tmp;
-    
     
     int n_ubounds = 0;
     for (int i=0;i < ub.size(); i++)
@@ -65,30 +64,15 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
          n_ubounds ++;
     }
     
-    As = mat(n_rows_eq+n_rows_inq+n_ubounds, n_cols+n_rows_inq, fill::zeros);
-    bs = vec(n_rows_eq+n_rows_inq+n_ubounds);
-    Qs = mat(n_cols + n_rows_inq, n_cols + n_rows_inq, fill::zeros);
-    cs = vec(n_cols+n_rows_inq);
+    As = mat(A.n_rows + n_ubounds, A.n_cols + n_ubounds, fill::zeros);
+    bs = vec(b.n_rows + n_ubounds);
+    Qs = mat(Q.n_cols + n_ubounds, Q.n_cols + n_ubounds, fill::zeros);
+    cs = vec(c.n_rows+n_ubounds);
     
-    // bs <--- (b-A*lb, beq-Aeq*lb, 0)
-    bs.rows(0, n_rows_inq-1) = b - A*lb;
-    bs.rows(n_rows_inq, n_rows_eq + n_rows_inq-1) = beq - Aeq*lb;
-    
-    // As <--- [ A I_(n_rows_inq); Aeq 0; 0 0]
-    tmp = mat(n_rows_inq, n_rows_inq);
-    tmp.eye();
-    
+    bs.rows(0, b.n_rows - 1) = b - A*lb;
     As(0, 0, size(A)) = A;
-    As(0, n_cols, size(tmp)) = tmp;
-    As(n_rows_inq, 0, size(Aeq)) = Aeq;
-    
-    
-    // Qs <--- [Q 0; 0 0]
     Qs(0, 0, size(Q)) = Q;
-    
-    // cs <--- [c + 2*Q*lb; 0]
-    cs.rows(0,n_cols-1) = c + 2*Q*lb;
-    
+    cs.rows(0,c.n_rows-1) = c + 2*Q*lb;
     
     // append [0 0 0 ... 0 1 0 ...0] to As
     // and ub_i- lb+i to bs;
@@ -97,13 +81,15 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
     {
         if (fabs(ub(i) - infty) > 1)
         {
-            As(n_rows_inq + n_rows_eq + counter, i) = 1;
-            bs(n_rows_inq + n_rows_eq + counter) = ub(i) - lb(i);
+            As(A.n_rows + counter, i) = 1;
+            As(A.n_rows + counter, A.n_cols + counter) = 1;
+            bs(b.n_rows + counter) = ub(i) - lb(i);
             counter ++;
         }
         
     }
     
+    //Qs.print("Qs = "); As.print("As = "); bs.print("bs = "); cs.print("cs = ");
     
     return 0;
 }
@@ -137,7 +123,7 @@ void mpsReader::_extractData(std::ifstream &readFile)
     
     // split Araw to A, Aeq, c
     // and splict braw to b and beq
-    _splitRaw(Araw, braw, c, A, b, Aeq, beq);
+    _splitRaw(Araw, braw, c, A, b);
 }
 
 void mpsReader::_preprocScan(std::ifstream &readFile)
@@ -334,14 +320,12 @@ void mpsReader::_findPos2Start(std::ifstream &readFile)
 
 void mpsReader::_initializeData()
 {
-    Q   = mat(n_cols    , n_cols, fill::zeros);
-    A   = mat(n_rows_inq, n_cols, fill::zeros);
-    b   = vec(n_rows_inq,         fill::zeros);
-    Aeq = mat(n_rows_eq , n_cols, fill::zeros);
-    beq = vec(n_rows_eq ,         fill::zeros);
-    c   = vec(n_cols    ,         fill::zeros);
-    lb  = vec(n_cols    ,         fill::zeros);
-    ub  = vec(n_cols);  ub.fill(infty);
+    Q   = mat(n_cols+n_rows_inq   , n_cols+n_rows_inq, fill::zeros);
+    A   = mat(n_rows_inq+n_rows_eq, n_cols+n_rows_inq, fill::zeros);
+    b   = vec(n_rows_inq+n_rows_eq,                    fill::zeros);
+    c   = vec(n_cols+n_rows_inq   ,         fill::zeros);
+    lb  = vec(n_cols+n_rows_inq   ,         fill::zeros);
+    ub  = vec(n_cols+n_rows_inq);  ub.fill(infty);
     
     objsense = "MIN";
 }
@@ -478,29 +462,34 @@ void mpsReader::_getQdo(std::ifstream &readFile)
     }
 }
 
-void mpsReader::_splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b, mat &Aeq, vec &beq)
+void mpsReader::_splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b)
 {
-    int counter_eq = 0, counter_inq = 0;
+    int counter = 0, counter_inq = 0;
+    
     for (int i=0; i< n_rows; i++)
     {
         if (row_labels[i] == "N")
-            c = trans( Araw.row(i) );
+            c.rows(0,n_cols-1) = trans( Araw.row(i) );
         else if (row_labels[i] == "E")
         {
-            Aeq.row(counter_eq) = Araw.row(i);
-            beq.row(counter_eq) = braw.row(i);
-            counter_eq ++;
+            A.submat(counter, 0, counter, n_cols-1) = Araw.row(i);
+            b.row(counter) = braw.row(i);
+            counter ++;
         }
         else if (row_labels[i] == "L")
         {
-            A.row(counter_inq) = Araw.row(i);
-            b.row(counter_inq) = braw.row(i);
+            A.submat(counter, 0, counter, n_cols-1) = Araw.row(i);
+            A(counter, n_cols + counter_inq) = 1;
+            b.row(counter) = braw.row(i);
+            counter ++;
             counter_inq ++;
         }
         else if (row_labels[i] == "G")
         {
-            A.row(counter_inq) = -Araw.row(i);
-            b.row(counter_inq) = -braw.row(i);
+            A.submat(counter, 0, counter, n_cols-1) = Araw.row(i);
+            A(counter, n_cols + counter_inq) = -1;
+            b.row(counter) = braw.row(i);
+            counter ++;
             counter_inq ++;
         }
         
@@ -540,8 +529,6 @@ void mpsReader::_printData()
     c.print("c: ");
     A.print("A: ");
     b.print("b ");
-    Aeq.print("Aeq: ");
-    beq.print("beq: ");
     lb.print("lb: ");
     ub.print("ub: ");
     

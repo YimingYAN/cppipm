@@ -1,16 +1,18 @@
-//
-//  mpsReader.h
-//  cppipm
-//
-//  Created by Yiming Yan on 11/07/2014.
-//  Copyright (c) 2014 Yiming Yan. All rights reserved.
-//
-/* Problem format
+/*
+ *  mpsReader.h
+ *  cppipm
+ *
+ *  Created by Yiming Yan on 11/07/2014.
+ *  Copyright (c) 2014 Yiming Yan. All rights reserved.
+ *
+ * Problem format
  * min 1/2 x'Qx + c'x
  * s.t. 
- *      Ax <= b
- *      Aeq x = beq
+ *      Ax = b
  *      lb <= x <= ub
+ *
+ * Note that in order to have the above format, slack variables will 
+ * be added if needed.
  *
  * After call trans2standardForm() function, we get
  * min 1/2 x'Qx + c'x
@@ -81,9 +83,7 @@ public:
     
     mat Q;
     mat A;
-    mat Aeq;
     vec b;
-    vec beq;
     vec lb;
     vec ub;
     vec c;
@@ -119,7 +119,7 @@ private:
     void _getbraw(std::ifstream &readFile, vec &braw);
     void _getBnds(std::ifstream &readFile);
     void _getQdo(std::ifstream &readFile);
-    void _splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b, mat &Aeq, vec &beq);
+    void _splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b);
     
     void _findPos2Start(std::ifstream &readFile);
     
