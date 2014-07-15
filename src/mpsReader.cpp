@@ -37,9 +37,7 @@ mpsReader::mpsReader(std::string fileName)
         time = timer.toc();
         
         // output
-        _printData();
-        
-
+        //_printData();
     }
     else
     {
@@ -106,10 +104,7 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
         
     }
     
-    Qs.print("Qs = ");
-    As.print("As = ");
-    bs.print("bs = ");
-    cs.print("cd = ");
+    
     return 0;
 }
 
@@ -440,10 +435,7 @@ void mpsReader::_getBnds(std::ifstream &readFile)
             lb(colIdx) = value;
         else if (label == "UP")
             ub(colIdx) = value;
-        else
-        {
-            std::cout<< "Error: MPSREADER unrecognised label."<<endl;
-        }
+        
         //else if (label == "FX") // fixed value
         //{
         //    lb(colIdx) = value;

@@ -60,7 +60,6 @@ void cppipm::solve()
             break;
         }
         
-        iter.calResiduals(prob);
         iter.solveNewton(prob);
         iter.getStepSize(pars);
         iter.updateIter();
@@ -80,7 +79,9 @@ void cppipm::_printHeader(const Parameters &pars)
         ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< "Iter";
         cout<<setw(10)<<"Residual";
-        cout<<setw(10)<<"Mu" << "\n";
+        cout<<setw(10)<<"Mu";
+        cout<<setw(10)<<"Alphax";
+        cout<<setw(10)<<"Alphas"<< "\n";
         cout.flags(old_settings);
     }
 }
@@ -96,6 +97,16 @@ void cppipm::_printIter(const Parameters &pars, const Iterate &iter)
         cout<<setprecision(2)<<scientific;
         cout<<setw(10)<<iter.getRes();
         cout<<setw(10)<< iter.getMu();
+        if (iter.getIterNum() == 0)
+        {
+            cout<<setw(10)<<"---";
+            cout<<setw(10)<<"---";
+        }
+        else
+        {
+            cout<<setw(10)<<iter.getAlphx();
+            cout<<setw(10)<< iter.getAlphs();
+        }
         cout<<endl;
         cout.flags(old_settings);
     }

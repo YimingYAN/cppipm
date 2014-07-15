@@ -91,15 +91,15 @@ void Iterate::solveNewton(const Problem &prob)
     
     // solve for directions (dx,dy)
     dxy = solve(R, Q.t()*rhs);
-    assert(norm(M*dxy - rhs,2) < 1e-12);
-    
+
     dx = dxy.rows(0, prob.n-1);
     dy = dxy.rows(prob.n, prob.m+prob.n-1);
     ds = (Rm - s % dx) / x;
     
-    assert(norm( prob.A*dx + (prob.A*x - prob.b),2 ) < 1e-12);
-    assert(norm( -prob.Q*dx + prob.A.t()*dy + ds  - prob.c - prob.Q*x + prob.A.t()*y + s,2 ) < 1e-12);
-    assert(norm( s%dx + x%ds - sigma*mu*ones(prob.n) + x%s,2 ) < 1e-12);
+    //assert(norm(M*dxy - rhs,2) < 1e-09);
+    //assert(norm( prob.A*dx + (prob.A*x - prob.b),2 ) < 1e-09);
+    //assert(norm( -prob.Q*dx + prob.A.t()*dy + ds  - prob.c - prob.Q*x + prob.A.t()*y + s,2 ) < 1e-09);
+    //assert(norm( s%dx + x%ds - sigma*mu*ones(prob.n) + x%s,2 ) < 1e-09);
 }
 
 void Iterate::getStepSize(const Parameters &pars)
@@ -204,4 +204,14 @@ void Iterate::_initialPoint_mehrotra(const Problem &prob)
     
     x = x + delta_x_c;
     s = s + delta_s_c;
+}
+
+double Iterate::getAlphx() const
+{
+    return alphax;
+}
+
+double Iterate::getAlphs() const
+{
+    return alphas;
 }

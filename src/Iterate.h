@@ -38,6 +38,8 @@ public:
     int getIterNum() const;
     double getMu() const;
     double getRes() const;
+    double getAlphx() const;
+    double getAlphs() const;
     
 private:
     // internal properties
