@@ -60,7 +60,8 @@ void cppipm::solve()
             break;
         }
         
-        iter.solveNewton(prob);
+        //iter.solveNewton_pathfollow(prob);
+        iter.solveNewton_predictor_corrector(prob, pars);
         iter.getStepSize(pars);
         iter.updateIter();
         iter.iterIncrement();

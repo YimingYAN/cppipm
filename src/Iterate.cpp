@@ -36,7 +36,6 @@ void Iterate::calResiduals(const Problem &prob)
     
     Rp = prob.b - prob.A*x;
     Rd = prob.c - prob.A.t()*y - s + prob.Q*x;
-    Rm = sigma*mu*ones(prob.n) - x%s;
     
     residual = ( norm(Rp,2) + norm(Rd,2) + prob.n*mu ) / bc;
 }
@@ -55,7 +54,7 @@ bool Iterate::checkTermination(const Parameters &pars, Status &stat)
     return check_maxIter || check_residual;
 }
 
-void Iterate::solveNewton(const Problem &prob)
+void Iterate::solveNewton_pathfollow(const Problem &prob)
 {
     /*
      The Newton's diections are obtained by solving the following system,
@@ -71,27 +70,106 @@ void Iterate::solveNewton(const Problem &prob)
     mat M_R1(prob.n, prob.m+prob.n);
     mat M_R2(prob.m, prob.m+prob.n);
     mat M(prob.m + prob.n, prob.m + prob.n);
-    vec rhs(prob.n + prob.m);
     mat R(prob.m + prob.n, prob.m + prob.n);
     mat Q(prob.m + prob.n, prob.m + prob.n);
     vec theta(prob.n);
-    vec dxy(prob.m + prob.n);
-
     
+    Rm = sigma*mu*ones(prob.n) - x%s;
+    
+    // format the coeff. matrix for (dx, dy) in the augmented system
     theta = s/x;
     
     M_R1 = join_horiz( -prob.Q-diagmat(theta), prob.A.t());
     M_R2 = join_horiz( prob.A,                 mat(prob.m, prob.m, fill::zeros) );
     M = join_vert(M_R1, M_R2);
     
-    rhs = join_vert(Rd - Rm/x, Rp);
+    // factorise M
+    qr(Q,R,M);
+    
+    _getDirections(prob, Rp, Rd, Rm, Q, R);
+}
+
+void Iterate::solveNewton_predictor_corrector(const Problem &prob, const Parameters &pars)
+{
+    /*
+     Predictor and corrector are used.
+     
+     Predictor step:
+     
+     [  A   0  0 ] [ dx_pred ] =   [ b - Ax           ]   [ Rp     ]
+     [ -Q   A' I ] [ dy_pred ] =   [ c - A'y - s + Qx ] = [ Rd     ]
+     [  S   0  X ] [ ds_pred ] =   [ - XSe            ]   [ Rm_pred ]
+     
+     Centring parameter:
+     
+     mu_pred = (x+alphax*dx_pred)'(s+alphas*ds_pred)/n
+     sigma = (mu_pred/mu)^3
+     
+     
+     Corrector step:
+     
+     [  A   0  0 ] [ dx_corr ] =   [ 0                              ]   [ 0       ]
+     [ -Q   A' I ] [ dy_corr ] =   [ 0                              ] = [ 0       ]
+     [  S   0  X ] [ ds_corr ] =   [ sigma*mu*e - dX_pred*dS_pred*e ]   [ Rm_corr ]
+     
+     Newton direction:
+     
+     dx = dx_pred + dx_corr;
+     dy = dy_pred + dy_corr;
+     ds = ds_pred + ds_corr;
+     
+     Note that in the implementation, we combine the Corrector step and gettting Newton direction,
+     in the aim of saving memery. Namely we actually solve,
+     
+     Corrector + centrality step:
+     
+     [  A   0  0 ] [ dx ] =   [ b - Ax                               ]   [ Rp       ]
+     [ -Q   A' I ] [ dy ] =   [ c - A'y - s + Qx                     ] = [ Rd       ]
+     [  S   0  X ] [ ds ] =   [ sigma*mu*e - dX_pred*dS_pred*e -  XSe]   [ Rm_corr2 ]
+     
+     */
+    
+    // form the augmented system
+    mat M_R1(prob.n, prob.m+prob.n);
+    mat M_R2(prob.m, prob.m+prob.n);
+    mat M(prob.m + prob.n, prob.m + prob.n);
+    mat R(prob.m + prob.n, prob.m + prob.n);
+    mat Q(prob.m + prob.n, prob.m + prob.n);
+    vec theta(prob.n);
+    
+    // format the coeff. matrix for (dx, dy) in the augmented system
+    theta = s/x;
+    
+    M_R1 = join_horiz( -prob.Q-diagmat(theta), prob.A.t());
+    M_R2 = join_horiz( prob.A,                 mat(prob.m, prob.m, fill::zeros) );
+    M = join_vert(M_R1, M_R2);
     
     // factorise M
     qr(Q,R,M);
     
-    // solve for directions (dx,dy)
-    dxy = solve(R, Q.t()*rhs);
+    // predictor step
+    Rm = -x%s;
+    _getDirections(prob, Rp, Rd, Rm, Q, R);
+    getStepSize(pars);
+    
+    // get sigma
+    sigma = dot(x + alphax*dx, s + alphas*ds) / prob.n;
+    sigma = pow( sigma/mu, 3.0);
+    
+    // corrector and centrality step
+    Rm = sigma*mu*ones(prob.n) - dx%ds - x%s;
+    _getDirections(prob, Rp, Rd, Rm, Q, R);
+}
 
+void Iterate::_getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& Q, const mat& R)
+{
+    vec rhs(prob.n + prob.m);
+
+    rhs = join_vert(Rd - Rm/x, Rp);
+    
+    // solve for directions (dx,dy)
+    vec dxy = solve(R, Q.t()*rhs);
+    
     dx = dxy.rows(0, prob.n-1);
     dy = dxy.rows(prob.n, prob.m+prob.n-1);
     ds = (Rm - s % dx) / x;

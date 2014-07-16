@@ -27,7 +27,8 @@ public:
     void initialPoint(const Problem &prob);
     void calResiduals(const Problem &prob);
     bool checkTermination(const Parameters &pars, Status &stat);
-    void solveNewton(const Problem &prob);
+    void solveNewton_pathfollow(const Problem &prob);
+    void solveNewton_predictor_corrector(const Problem &prob, const Parameters &pars);
     void getStepSize(const Parameters &pars);
     void updateIter();
     void iterIncrement();
@@ -66,6 +67,7 @@ private:
     // internal function
     void _initialPoint_simple(const Problem &prob);
     void _initialPoint_mehrotra(const Problem &prob);
+    void _getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& Q, const mat& R);
     
 };
 
