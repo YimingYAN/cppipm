@@ -9,18 +9,13 @@
 #include "Problem.h"
 #include <cassert>
 
-Problem::Problem()
-{
-    
-}
+Problem::Problem(){}
 
 Problem::Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
 {
+    assert(iA.n_rows > 0 && iA.n_cols > 0);
     m = iA.n_rows;
     n = iA.n_cols;
-    
-    assert(m>0);
-    assert(n>0);
     
     Q = iQ;
     A = iA;
@@ -30,11 +25,10 @@ Problem::Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
 
 Problem::Problem(const mat &iA, const vec &ib, const vec &ic)
 {
+    assert(iA.n_rows > 0 && iA.n_cols > 0);
+    
     m = iA.n_rows;
     n = iA.n_cols;
-    
-    assert(m>0);
-    assert(n>0);
     
     A = iA;
     b = ib;
@@ -46,11 +40,10 @@ Problem::Problem(const mat &iA, const vec &ib, const vec &ic)
 
 Problem::Problem(const Problem& otherProb)
 {
+    assert(otherProb.n > 0 && otherProb.m > 0);
+    
     m = otherProb.m;
     n = otherProb.n;
-    
-    assert(m>0);
-    assert(n>0);
     
     Q = otherProb.Q;
     A = otherProb.A;
