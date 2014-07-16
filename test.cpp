@@ -5,6 +5,9 @@
 using namespace arma;
 int main (int argc, char* argv[])
 {
+    // test direct input
+    cout << "\nTest direct input: "<<endl;
+    
     mat Q(2,2);
     mat A(1,2);
     vec b(1);
@@ -19,18 +22,18 @@ int main (int argc, char* argv[])
     
     c(0) = 1; c(1) = 0.5;
 
-    // Test the cppipm as a whole
+    // qp test
+    cout<<"\nQP problem:"<<endl;
     cppipm qp_test = cppipm(Q, A, b, c);
     qp_test.solve();
     
-    cout<<endl;
-    
+    cout<<"\nLP problem:"<<endl;
     cppipm lp_test = cppipm(A, b, c);
     lp_test.solve();
     
     
     // test read from QPS
-    cout << "\nTest qps reader : "<<endl;
+    cout << "\nTest qps input : "<<endl;
 
     mat Qs, As;
     vec bs, cs;
