@@ -3,6 +3,7 @@ cppipm
 C++ implementation of the Interior Point Method (CPPIPM)
 
 ###Requirements
+* [Armadillo](http://arma.sourceforge.net/), C++ linear algebra library 
 
 ###How to use
 
