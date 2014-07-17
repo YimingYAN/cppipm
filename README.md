@@ -11,10 +11,16 @@ C++ implementation of the Interior Point Method (CPPIPM)
 
 ###Matlab Interface
 
-##Technical details
+###Technical details
 
 
-##Todo
-* Multiple centrality corrector from Gondizo
+###Todo
+- [ ] Multiple centrality corrector from J. Gondizo
+- [ ] Cholesky decomposition for symmetric indefinite matrix (MA27 or MA57)
+- [ ] Matlab interface
+- [ ] Active-set preidiction class
+- [ ] Constraints reduction class??? Not sure...
+
+
 ----
 Yiming Yan
