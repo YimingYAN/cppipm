@@ -18,6 +18,7 @@ Problem::Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
     n = iA.n_cols;
     
     Q = iQ;
+    
     A = iA;
     b = ib;
     c = ic;
@@ -46,6 +47,7 @@ Problem::Problem(const Problem& otherProb)
     n = otherProb.n;
     
     Q = otherProb.Q;
+    
     A = otherProb.A;
     b = otherProb.b;
     c = otherProb.c;

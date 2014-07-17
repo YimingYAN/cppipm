@@ -47,6 +47,7 @@ mpsReader::mpsReader(std::string fileName)
     
     readFile.close();
 }
+
 /*
  * Public functions
  */
@@ -146,16 +147,16 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
         if ( !firstWord.empty() && firstWord.find("*") != 0)
         {
             // ======= check termination ======
-            if ( _checkFieldName(firstWord) == 10 )
+            if ( _checkSectionName(firstWord) == 10 )
                 break;
             
-            if ( _checkFieldName(firstWord) == 8)
+            if ( _checkSectionName(firstWord) == 8)
             {
                 std::cout<< "Error: MPSREASER - Currently cannot handle SOS"<<std::endl;
                 break;
             }
             
-            if ( _checkFieldName(firstWord) == 9)
+            if ( _checkSectionName(firstWord) == 9)
             {
                 std::cout<< "Error: MPSREASER - Currently cannot handle RANGES"<<std::endl;
                 break;
@@ -163,19 +164,19 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
             
             // ======= end check termination ======
             
-            // ======= preprocess fields termination ======
-            if ( _checkFieldName(firstWord) == 1 ) // name
+            // ======= preprocess sections ======
+            if ( _checkSectionName(firstWord) == 1 ) // name
             {
                 readFile >> Name;
                 _nextLine(readFile);
                 readFile >> firstWord;
             }
-            else if ( _checkFieldName(firstWord) == 2 ) //rows
+            else if ( _checkSectionName(firstWord) == 2 ) //rows
             {
                 // update firstWord and row_list
                 readFile >> firstWord;
 
-                while (_checkFieldName(firstWord) == -1)
+                while (_checkSectionName(firstWord) == -1)
                 {
    
                     // count n_rows, n_rows_eq, n_rows_inq
@@ -204,14 +205,14 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                     readFile >> firstWord;
                 }
             }
-            else if ( _checkFieldName(firstWord) == 3 ) // cols
+            else if ( _checkSectionName(firstWord) == 3 ) // cols
             {
                 // get postion
                 col_pos = readFile.tellg();
 
                 readFile >> firstWord;
                 
-                while (_checkFieldName(firstWord) == -1) // continue if the keyword is not a feild name
+                while (_checkSectionName(firstWord) == -1) // continue if the keyword is not a feild name
                 {
                     if ( firstWord.compare(tmp) != 0 )
                     {
@@ -227,13 +228,13 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                 }
                 
             }
-            else if ( _checkFieldName(firstWord) == 4) //rhs
+            else if ( _checkSectionName(firstWord) == 4) //rhs
             {
                 rhs_pos = readFile.tellg();
                 _nextLine(readFile);
                 readFile >> firstWord;
             }
-            else if ( _checkFieldName(firstWord) == 5) //bounds
+            else if ( _checkSectionName(firstWord) == 5) //bounds
             {
                 bnd_exist = true;
                 
@@ -241,7 +242,7 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                 _nextLine(readFile);
                 readFile >> firstWord;
             }
-            else if ( _checkFieldName(firstWord) == 6) //quadobj
+            else if ( _checkSectionName(firstWord) == 6) //quadobj
             {
                 qdo_exist = true;
                 
@@ -249,7 +250,7 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                 _nextLine(readFile);
                 readFile >> firstWord;
             }
-            else if ( _checkFieldName(firstWord) == 7) // objsense
+            else if ( _checkSectionName(firstWord) == 7) // objsense
             {
                 objsense = true;
                 
@@ -257,12 +258,12 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                 readFile >> objsense;
                 readFile >> firstWord;
             }
-            else                                        // not a keywod of fields
+            else                                        // not a keywod of sections
             {
                 _nextLine(readFile);
                 readFile >> firstWord;
             }
-            // ======= end preprocess fields termination ======
+            // ======= end preprocess sections termination ======
             
         }
     }
@@ -270,7 +271,7 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
 }
 
 
-int mpsReader::_checkFieldName(std::string checkWord) const
+int mpsReader::_checkSectionName(std::string checkWord) const
 {
     
     if (checkWord.compare("NAME") == 0)
@@ -350,8 +351,8 @@ void mpsReader::_getAraw(std::ifstream &readFile, mat &Araw)
         
         thisLine >> colName;
         
-        // break if get to next field
-        if (_checkFieldName(colName) != -1)
+        // break if get to next section
+        if (_checkSectionName(colName) != -1)
             break;
         
         // get col index
@@ -385,7 +386,7 @@ void mpsReader::_getbraw(std::ifstream &readFile, vec &braw)
         
         thisLine >> colName;
         
-        if ( _checkFieldName(colName) != -1 )
+        if ( _checkSectionName(colName) != -1 )
             break;
         
         while (thisLine >> rowName >> value)
@@ -431,7 +432,7 @@ void mpsReader::_getBnds(std::ifstream &readFile)
         //    ub(colIdx) = infty;
         //}
         
-    } while (_checkFieldName(label) == -1);
+    } while (_checkSectionName(label) == -1);
 }
 
 void mpsReader::_getQdo(std::ifstream &readFile)
@@ -450,7 +451,7 @@ void mpsReader::_getQdo(std::ifstream &readFile)
         readFile >> colName1 >> colName2 >> value;
         colIdx1 = _getIndex(col_list, colName1);
         
-        if (_checkFieldName(colName1) != -1)
+        if (_checkSectionName(colName1) != -1)
             break;
         
         colIdx2 = _getIndex(col_list, colName2);

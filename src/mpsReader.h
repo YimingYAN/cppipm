@@ -5,6 +5,8 @@
  *  Created by Yiming Yan on 11/07/2014.
  *  Copyright (c) 2014 Yiming Yan. All rights reserved.
  *
+ * =================================================================
+ *
  * Problem format
  * min 1/2 x'Qx + c'x
  * s.t. 
@@ -20,12 +22,10 @@
  *      Ax = b
  *      x >= 0
  *
- *
+ * =================================================================
  * Accepted format: mps, qps, free fromatted mps, 
  * free formatted qps
  *  
- * The folloiwng are from 
- *      http://lpsolve.sourceforge.net/5.5/mps-format.htm
  *
  * In the ROWS section, each row of the constraint matrix must have a
  * row type and a row name specified. The code for indicating row type
@@ -40,7 +40,7 @@
  *
  * *** N will only be recognised as objective function.
  * 
- * RANGES are not accepted currently.
+ * RANGES and SOS are not accepted currently.
  *
  * For BOUNDS, we accept only 
  *      type            meaning
@@ -49,6 +49,10 @@
  *      UP              upper bound        (0 <=) x <= ub
  *
  * *** Thus lb is always finite.
+ *
+ * For details about MPS format, see
+ *      http://lpsolve.sourceforge.net/5.5/mps-format.htm
+ *
  */
 
 #ifndef cppipm_mpsReader_h
@@ -131,7 +135,7 @@ private:
      */
     
     
-    int _checkFieldName(std::string checkWord) const;
+    int _checkSectionName(std::string checkWord) const;
     /* This function checks the field names. 
      * Return an interge ranging from 1 to 8
      * 1 - NAME
