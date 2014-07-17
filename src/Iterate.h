@@ -28,7 +28,8 @@ public:
     void calResiduals(const Problem &prob);
     bool checkTermination(const Parameters &pars, Status &stat);
     void solveNewton_pathfollow(const Problem &prob);
-    void solveNewton_predictor_corrector(const Problem &prob, const Parameters &pars);
+    void solveNewton_pc(const Problem &prob, const Parameters &pars); // predictor-corrector
+    void solveNewton_mcc(const Problem &prob, const Parameters &pars);// multiple centrality corrector
     void getStepSize(const Parameters &pars);
     void updateIter();
     void iterIncrement();

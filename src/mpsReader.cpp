@@ -161,7 +161,6 @@ void mpsReader::_preprocScan(std::ifstream &readFile)
                 std::cout<< "Error: MPSREASER - Currently cannot handle RANGES"<<std::endl;
                 break;
             }
-            
             // ======= end check termination ======
             
             // ======= preprocess sections ======
@@ -420,17 +419,11 @@ void mpsReader::_getBnds(std::ifstream &readFile)
             lb(colIdx) = value;
         else if (label == "UP")
             ub(colIdx) = value;
-        
-        //else if (label == "FX") // fixed value
-        //{
-        //    lb(colIdx) = value;
-        //    ub(colIdx) = value;
-        //}
-        //else if (label == "FR") // free variables
-        //{
-        //    lb(colIdx) = -infty;
-        //    ub(colIdx) = infty;
-        //}
+        else
+        {
+            std::cout<<"Error: MPSREADER only accept LO and UP for Bounds"<<std::endl;
+            break;
+        }
         
     } while (_checkSectionName(label) == -1);
 }

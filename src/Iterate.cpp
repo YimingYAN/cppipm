@@ -10,9 +10,7 @@
 #include <iostream>
 #include "Iterate.h"
 
-Iterate::Iterate()
-{
-}
+Iterate::Iterate(){}
 
 Iterate::Iterate(const Problem &prob)
 {
@@ -89,7 +87,7 @@ void Iterate::solveNewton_pathfollow(const Problem &prob)
     _getDirections(prob, Rp, Rd, Rm, Q, R);
 }
 
-void Iterate::solveNewton_predictor_corrector(const Problem &prob, const Parameters &pars)
+void Iterate::solveNewton_pc(const Problem &prob, const Parameters &pars)
 {
     /*
      Predictor and corrector are used.
@@ -118,8 +116,8 @@ void Iterate::solveNewton_predictor_corrector(const Problem &prob, const Paramet
      dy = dy_pred + dy_corr;
      ds = ds_pred + ds_corr;
      
-     Note that in the implementation, we combine the Corrector step and gettting Newton direction,
-     in the aim of saving memery. Namely we actually solve,
+     Note that in the implementation, we combine the Corrector step and Newton direction step,
+     in the aim of saving memory. Namely we actually solve
      
      Corrector + centrality step:
      
@@ -160,6 +158,13 @@ void Iterate::solveNewton_predictor_corrector(const Problem &prob, const Paramet
     Rm = sigma*mu*ones(prob.n) - dx%ds - x%s;
     _getDirections(prob, Rp, Rd, Rm, Q, R);
 }
+
+
+void Iterate::solveNewton_mcc(const Problem &prob, const Parameters &pars)
+{
+    std::cout<<"Not implemented yet."<<endl;
+}
+
 
 void Iterate::_getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& Q, const mat& R)
 {
