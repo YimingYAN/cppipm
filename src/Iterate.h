@@ -68,7 +68,7 @@ private:
     // internal function
     void _initialPoint_simple(const Problem &prob);
     void _initialPoint_mehrotra(const Problem &prob);
-    void _getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& Q, const mat& R);
+    void _getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& L, const mat& U, const mat& P);
     
 };
 

@@ -68,8 +68,9 @@ void Iterate::solveNewton_pathfollow(const Problem &prob)
     mat M_R1(prob.n, prob.m+prob.n);
     mat M_R2(prob.m, prob.m+prob.n);
     mat M(prob.m + prob.n, prob.m + prob.n);
-    mat R(prob.m + prob.n, prob.m + prob.n);
-    mat Q(prob.m + prob.n, prob.m + prob.n);
+    mat L(prob.m + prob.n, prob.m + prob.n);
+    mat U(prob.m + prob.n, prob.m + prob.n);
+    mat P(prob.m + prob.n, prob.m + prob.n);
     vec theta(prob.n);
     
     Rm = sigma*mu*ones(prob.n) - x%s;
@@ -82,9 +83,9 @@ void Iterate::solveNewton_pathfollow(const Problem &prob)
     M = join_vert(M_R1, M_R2);
     
     // factorise M
-    qr(Q,R,M);
+    lu(L,U,P,M);
     
-    _getDirections(prob, Rp, Rd, Rm, Q, R);
+    _getDirections(prob, Rp, Rd, Rm, L, U, P);
 }
 
 void Iterate::solveNewton_pc(const Problem &prob, const Parameters &pars)
@@ -131,8 +132,9 @@ void Iterate::solveNewton_pc(const Problem &prob, const Parameters &pars)
     mat M_R1(prob.n, prob.m+prob.n);
     mat M_R2(prob.m, prob.m+prob.n);
     mat M(prob.m + prob.n, prob.m + prob.n);
-    mat R(prob.m + prob.n, prob.m + prob.n);
-    mat Q(prob.m + prob.n, prob.m + prob.n);
+    mat L(prob.m + prob.n, prob.m + prob.n);
+    mat U(prob.m + prob.n, prob.m + prob.n);
+    mat P(prob.m + prob.n, prob.m + prob.n);
     vec theta(prob.n);
     
     // format the coeff. matrix for (dx, dy) in the augmented system
@@ -143,11 +145,11 @@ void Iterate::solveNewton_pc(const Problem &prob, const Parameters &pars)
     M = join_vert(M_R1, M_R2);
     
     // factorise M
-    qr(Q,R,M);
+    lu(L,U,P,M);
     
     // predictor step
     Rm = -x%s;
-    _getDirections(prob, Rp, Rd, Rm, Q, R);
+    _getDirections(prob, Rp, Rd, Rm, L, U, P);
     getStepSize(pars);
     
     // get sigma
@@ -156,7 +158,7 @@ void Iterate::solveNewton_pc(const Problem &prob, const Parameters &pars)
     
     // corrector and centrality step
     Rm = sigma*mu*ones(prob.n) - dx%ds - x%s;
-    _getDirections(prob, Rp, Rd, Rm, Q, R);
+    _getDirections(prob, Rp, Rd, Rm, L, U, P);
 }
 
 
@@ -166,14 +168,17 @@ void Iterate::solveNewton_mcc(const Problem &prob, const Parameters &pars)
 }
 
 
-void Iterate::_getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& Q, const mat& R)
+void Iterate::_getDirections(const Problem& prob, const vec& Rp, const vec& Rd, const vec& Rm, const mat& L, const mat& U, const mat& P)
 {
     vec rhs(prob.n + prob.m);
+    vec dxy(prob.n + prob.m);
 
     rhs = join_vert(Rd - Rm/x, Rp);
     
     // solve for directions (dx,dy)
-    vec dxy = solve(R, Q.t()*rhs);
+    dxy = solve(P.t(), rhs);
+    dxy = solve(trimatl(L),dxy);
+    dxy = solve(trimatu(U), dxy);
     
     dx = dxy.rows(0, prob.n-1);
     dy = dxy.rows(prob.n, prob.m+prob.n-1);
