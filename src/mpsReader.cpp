@@ -421,11 +421,12 @@ void mpsReader::_getBnds(std::ifstream &readFile)
             ub(colIdx) = value;
         else
         {
-            std::cout<<"Error: MPSREADER only accept LO and UP for Bounds"<<std::endl;
+            if (_checkSectionName(label) == -1)
+                std::cout<<"Error: MPSREADER only accept LO and UP for Bounds"<<std::endl;
             break;
         }
         
-    } while (_checkSectionName(label) == -1);
+    } while (true);
 }
 
 void mpsReader::_getQdo(std::ifstream &readFile)
