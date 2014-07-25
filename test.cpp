@@ -1,6 +1,6 @@
 #include <iostream>
-#include "src/cppipm.h"
-#include "src/mpsReader.h"
+#include "cppipm.h"
+#include "mpsReader.h"
 
 using namespace arma;
 int main (int argc, char* argv[])
