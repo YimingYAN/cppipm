@@ -60,8 +60,8 @@
 
 #include<iostream>
 #include <vector>
-#include<armadillo>
-using namespace arma;
+
+#include "include_libs.h"
 
 class mpsReader
 {

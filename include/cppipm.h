@@ -5,13 +5,13 @@
  * Created by Yiming Yan on 08/07/2014.
  * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
-#include <armadillo>
+
 #include "Problem.h"
 #include "Parameters.h"
 #include "Status.h"
 #include "Iterate.h"
+#include "include_libs.h"
 
-using namespace arma;
 
 class cppipm
 {

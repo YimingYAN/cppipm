@@ -9,9 +9,7 @@
 #ifndef cppipm_Problem_h
 #define cppipm_Problem_h
 
-#include <armadillo>
-using namespace arma;
-
+#include "include_libs.h"
 
 class Problem
 {

@@ -8,13 +8,12 @@
 
 #ifndef cppipm_Iterate_h
 #define cppipm_Iterate_h
-#include <armadillo>
 
 #include "Problem.h"
 #include "Parameters.h"
 #include "Status.h"
 
-using namespace arma;
+#include "include_libs.h"
 
 class Iterate
 {
