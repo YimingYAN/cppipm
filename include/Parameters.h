@@ -13,8 +13,8 @@ class Parameters
 {
 public:
     int maxIter;
-    double tol;
     int verbose;
+    double tol;
     double eta = 0.99995;     // ratio for stepsizes
     
     Parameters()
