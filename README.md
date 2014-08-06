@@ -9,6 +9,22 @@ C++ implementation of the Interior Point Method (CPPIPM)
 
 
 ###How to use
+For QP:
+``` Algorithm* test = new cppipm(Q,A,b,c);
+    test -> solve();
+```
+
+For LP:
+``` Algorithm* test = new cppipm(A,b,c);
+    test -> solve();
+```
+
+Or:
+``` Algorithm* test = new cppipm(otherProblem);
+    test -> solve();
+```
+
+
 
 ###Example
 
