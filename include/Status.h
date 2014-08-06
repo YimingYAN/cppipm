@@ -17,10 +17,10 @@ private:
                     // 2 - infeasible
  
 public:
-    Status();
+    Status() { exitFlag = 0; }
     
-    void setExitFlag(int newFlag);
-    int getExitFlag() const;
+    void setExitFlag(int newFlag){ exitFlag = newFlag; }
+    int getExitFlag() const { return exitFlag; }
 };
 
 

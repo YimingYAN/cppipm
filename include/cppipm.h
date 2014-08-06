@@ -1,51 +1,62 @@
 /* CPPIPM
- * Header for the interior point solver
+ * Subclass of Algorithm
  *
+ * Header for the interior point solver
  *
  * Created by Yiming Yan on 08/07/2014.
  * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
 
+#include "Algorithm.h"
 #include "Problem.h"
 #include "Parameters.h"
 #include "Status.h"
-#include "Iterate.h"
 #include "include_libs.h"
 
 
-class cppipm
+class cppipm: public Algorithm
 {
 public:
-    Problem     prob;
-    Parameters  pars;
-    Iterate     iter;
-    Status      stat;
-    
-    // Overwrite the constractors
+    /* 
+     * Overwrite the constractors
+     */
     cppipm();
     cppipm(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
     cppipm(const mat &A, const vec &b, const vec &c);                  // LP
     cppipm(const Problem &prob);
     cppipm(const Problem &prob, const Parameters &pars);
     
+protected:
+    Problem     prob;
+    Parameters  pars;
+    Status      stat;
+    wall_clock timer;
     
-    // Driver function
-    void solve();
+    double alphax, alphas;
+    double mu;
     
-    // Ultilities
-    vec getOptx();
-    vec getOpts();
-    vec getOpty();
-    int getIter();
-    double getResiduals();
-    double getTime();
+    double sigma;       // centring paramter
+    double bc;          // regulator
     
-private:
-    double totalTime = 0.0;
+    vec Rp, Rd;
     
-    //Internal functions
-    void _printHeader(const Parameters &pars);
-    void _printIter(const Parameters &pars, const Iterate &iter);
-    void _printFooter(const Parameters &pars, const Iterate &iter, const Status &stat);
+    vec  x,  y,  s;
+    vec dx, dy, ds;
+    
+    void initialPoint();
+    void calResidual();
+    bool checkTermination();
+    void calSearchDriection();
+    void getStepSize();
+    void updateIterates();
+
+    void printHeader();
+    void printIter();
+    void printFooter();
+    void startTimer();
+    void endTimer();
+    
+    void _getDirections(vec& Rm, mat& L, mat& U, mat& P);
+    
     
 };

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "cppipm.h"
 #include "mpsReader.h"
+#include "Algorithm.h"
 
 using namespace arma;
 int main (int argc, char* argv[])
@@ -24,12 +25,12 @@ int main (int argc, char* argv[])
 
     // qp test
     cout<<"\nQP problem:"<<endl;
-    cppipm qp_test = cppipm(Q, A, b, c);
-    qp_test.solve();
+    Algorithm* qp_test = new cppipm(Q, A, b, c);
+    qp_test->solve();
     
     cout<<"\nLP problem:"<<endl;
-    cppipm lp_test = cppipm(A, b, c);
-    lp_test.solve();
+    Algorithm* lp_test = new cppipm(A, b, c);
+    lp_test->solve();
     
     
     // test read from QPS
@@ -43,8 +44,8 @@ int main (int argc, char* argv[])
         cout<< "\n++++++ TESTPROB " <<endl;
         mpsReader mpsTESTPROB("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB.QPS");
         mpsTESTPROB.trans2standardForm(Qs, As, bs, cs);
-        cppipm mps_testprob_test = cppipm(Qs, As, bs, cs);
-        mps_testprob_test.solve();
+        Algorithm* mps_testprob_test = new cppipm(Qs, As, bs, cs);
+        mps_testprob_test->solve();
     }
     catch (...)
     {
@@ -55,8 +56,8 @@ int main (int argc, char* argv[])
         cout<< "\n++++++ TESTPROB2" <<endl;
         mpsReader mpsTESTPROB2("/Users/yimingyan/Dropbox/Github/cppipm/examples/TESTPROB2.QPS");
         mpsTESTPROB2.trans2standardForm(Qs, As, bs, cs);
-        cppipm mps_testprob2_test = cppipm(Qs, As, bs, cs);
-        mps_testprob2_test.solve();
+        Algorithm* mps_testprob2_test = new cppipm(Qs, As, bs, cs);
+        mps_testprob2_test->solve();
     }
     catch (...)
     {
@@ -68,8 +69,8 @@ int main (int argc, char* argv[])
         cout<< "\n+++++ QAFIRO " <<endl;
         mpsReader mpsQAFIRO("/Users/yimingyan/Dropbox/Github/cppipm/examples/QAFIRO.QPS");
         mpsQAFIRO.trans2standardForm(Qs, As, bs, cs);
-        cppipm mps_qafiro_test = cppipm(Qs, As, bs, cs);
-        mps_qafiro_test.solve();
+        Algorithm* mps_qafiro_test = new cppipm(Qs, As, bs, cs);
+        mps_qafiro_test->solve();
     }
     catch (...)
     {
@@ -81,13 +82,14 @@ int main (int argc, char* argv[])
         cout<< "\n+++++ SIMPLE" <<endl;
         mpsReader mpsSIMPLE("/Users/yimingyan/Dropbox/Github/cppipm/examples/SIMPLE.QPS");
         mpsSIMPLE.trans2standardForm(Qs, As, bs, cs);
-        cppipm mps_simple_test = cppipm(Qs, As, bs, cs);
-        mps_simple_test.solve();
+        Algorithm* mps_simple_test = new cppipm(Qs, As, bs, cs);
+        mps_simple_test->solve();
     }
     catch (...)
     {
         cout<< "ah....SIMPLE"<<endl;
     }
+    
     
 	return 0;
 }

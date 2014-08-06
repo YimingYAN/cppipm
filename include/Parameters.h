@@ -17,12 +17,23 @@ public:
     int verbose;
     double eta = 0.99995;     // ratio for stepsizes
     
-    Parameters();
-    Parameters(int otherMaxIter, double otherTol, int otherVerbose);
+    Parameters()
+    {
+        maxIter = 50;
+        tol = 1e-08;
+        verbose = 2;
+    }
     
-    void set_maxIter(int otherMaxIter);
-    void set_setTol(double otehrTol);
-    void set_verbose(int otherVerbose);
+    Parameters(int otherMaxIter, double otherTol, int otherVerbose)
+    {
+        maxIter = otherMaxIter;
+        tol = otherTol;
+        verbose = otherVerbose;
+    }
+    
+    void set_maxIter(int otherMaxIter) { maxIter = otherMaxIter; }
+    void set_setTol(double otherTol)   { tol = otherTol;         }
+    void set_verbose(int otherVerbose) { verbose = otherVerbose; }
 };
 
 #endif

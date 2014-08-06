@@ -10,7 +10,8 @@
 #define cppipm_include_libs_h
 
 #include <armadillo>
+#include <iostream>
 using namespace arma;
-
+using namespace std;
 
 #endif

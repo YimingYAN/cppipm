@@ -10,6 +10,7 @@
 #define cppipm_Problem_h
 
 #include "include_libs.h"
+#include <cassert>
 
 class Problem
 {
@@ -28,20 +29,61 @@ public:
     int n;     // number of variables
     
     // Constructors
-    Problem();
-    Problem(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
-    Problem(const mat &A, const vec &b, const vec &c);                  // LP
-    Problem(const Problem& otherProb);                                  // Copy other problem
+    Problem() {}
     
+    /* QP */
+    Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
+    {
+        assert(iA.n_rows > 0 && iA.n_cols > 0);
+        m = iA.n_rows;
+        n = iA.n_cols;
+        
+        Q = iQ;
+        
+        A = iA;
+        b = ib;
+        c = ic;
+    }
+    
+    /* LP */
+    Problem(const mat &iA, const vec &ib, const vec &ic)
+    {
+        assert(iA.n_rows > 0 && iA.n_cols > 0);
+        
+        m = iA.n_rows;
+        n = iA.n_cols;
+        
+        A = iA;
+        b = ib;
+        c = ic;
+        
+        Q = mat(n,n, fill::zeros);
+    }
+    
+    /* Copy from other problem */
+    Problem(const Problem& otherProb)
+    {
+        assert(otherProb.n > 0 && otherProb.m > 0);
+        
+        m = otherProb.m;
+        n = otherProb.n;
+        
+        Q = otherProb.Q;
+        
+        A = otherProb.A;
+        b = otherProb.b;
+        c = otherProb.c;
+        
+    }
     // Methods
-    void setOptx(const vec x);
-    void setOpty(const vec y);
-    void setOpts(const vec s);
+    void setOptx(const vec x) { optx = x; }
+    void setOpty(const vec y) { opty = y; }
+    void setOpts(const vec s) { opts = s; }
     
     
-    vec getOptx() const;
-    vec getOpty() const;
-    vec getOpts() const;
+    vec getOptx() const { return optx; }
+    vec getOpty() const { return opty; };
+    vec getOpts() const { return opts; };
 };
 
 #endif
