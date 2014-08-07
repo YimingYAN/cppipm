@@ -14,7 +14,9 @@ class Algorithm
 {
     
 public:
-    
+	/*
+	 * Template method
+	 */    
     void solve()
     {
         printHeader();
