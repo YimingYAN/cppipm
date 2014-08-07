@@ -1,1 +1,3 @@
 cppipm.xcodeproj/
+lib/Eigen/*
+!lib/Eigen/README.md
