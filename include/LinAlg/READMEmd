@@ -1,3 +1,10 @@
-Unified interface for linear algebra.
+Unified interfaces for linear algebra.
+We can change the linear algebra packages with less hussle. 
 
-We can change the linear algebra packages with less hussle.  
+
+###Classes
+Matrix
+
+Vector
+
+ 
