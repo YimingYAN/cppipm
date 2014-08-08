@@ -9,9 +9,15 @@
 #ifndef cppipm_include_libs_h
 #define cppipm_include_libs_h
 
-#include <armadillo>
 #include <iostream>
-using namespace arma;
 using namespace std;
+#include <Eigen/Core>
+using namespace Eigen;
+
+typedef MatrixXd mat;
+typedef VectorXd vec;
+
+//#include <armadillo>
+//using namespace arma;
 
 #endif
