@@ -12,10 +12,13 @@
 #include <iostream>
 using namespace std;
 #include <Eigen/Core>
+#include <Eigen/Dense>
 using namespace Eigen;
 
 typedef MatrixXd mat;
 typedef VectorXd vec;
+typedef LDLT<mat> Factorization;
+
 
 //#include <armadillo>
 //using namespace arma;

@@ -20,7 +20,7 @@ public:
     void solve()
     {
         printHeader();
-        startTimer();
+        //startTimer();
         
         initialPoint();
         while (true) {
@@ -37,7 +37,7 @@ public:
 
             iter++;
         }
-        endTimer();
+        //endTimer();
         printFooter();
     }
     
@@ -54,8 +54,8 @@ private:
     virtual void getStepSize()              = 0;
     virtual void updateIterates()           = 0;
 
-    virtual void startTimer()               = 0;
-    virtual void endTimer()                 = 0;
+    //virtual void startTimer()               = 0;
+    //virtual void endTimer()                 = 0;
     virtual void printHeader()              = 0;
     virtual void printIter()                = 0;
     virtual void printFooter()              = 0;

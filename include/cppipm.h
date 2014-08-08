@@ -30,7 +30,7 @@ protected:
     Problem     prob;
     Parameters  pars;
     Status      stat;
-    wall_clock timer;
+    //wall_clock timer;
     
     double alphax, alphas;
     double mu;
@@ -53,10 +53,10 @@ protected:
     void printHeader();
     void printIter();
     void printFooter();
-    void startTimer();
-    void endTimer();
+    //void startTimer();
+    //void endTimer();
     
-    void _getDirections(vec& Rm, mat& L, mat& U, mat& P);
+    void _getDirections(vec& Rm, LDLT<mat>& factor);
     
     
 };
