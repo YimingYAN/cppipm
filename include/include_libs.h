@@ -17,7 +17,7 @@ using namespace Eigen;
 
 typedef MatrixXd mat;
 typedef VectorXd vec;
-typedef LDLT<mat> Factorization;
+typedef HouseholderQR<mat> Factorization;
 
 
 //#include <armadillo>

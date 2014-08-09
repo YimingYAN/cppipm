@@ -50,10 +50,12 @@ void cppipm::initialPoint()
     mat coeffM = prob.A*prob.A.transpose();
     
     // min norm(x) s.t. Ax = b
-    x = prob.A.transpose() * coeffM.ldlt().solve(prob.b);
+    x = prob.A.transpose() * coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
+    //x = prob.A.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
     
     // min norm(s) s.t. A'*y + s - Qx = c
-    y = coeffM.ldlt().solve(prob.A*prob.c);
+    y = coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.A*prob.c);
+    //y = prob.A.transpose().jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.c);
     s = prob.c - prob.A.transpose()*y + prob.Q*x;
     
     // delta_x and delta_s
@@ -154,7 +156,7 @@ void cppipm::calSearchDriection()
          M_R2;
     
     // factorise M
-    Factorization factor = M.ldlt();
+    Factorization factor = M.householderQr();
     
     // predictor step
     vec Rm = -x.cwiseProduct(s);
@@ -185,7 +187,7 @@ void cppipm::_getDirections(vec& Rm, Factorization& factor)
     dx = dxy.head(prob.n);
     dy = dxy.tail(prob.m);
     ds = (Rm - s.cwiseProduct(dx));
-    ds =  ds.cwiseQuotient(x);
+    ds = ds.cwiseQuotient(x);
 }
 
 void cppipm::getStepSize()

@@ -56,7 +56,7 @@ protected:
     //void startTimer();
     //void endTimer();
     
-    void _getDirections(vec& Rm, LDLT<mat>& factor);
+    void _getDirections(vec& Rm, Factorization& factor);
     
     
 };
