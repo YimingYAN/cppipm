@@ -14,6 +14,14 @@
  */
 mpsReader::mpsReader(std::string fileName)
 {
+    // initialise
+    objsense = "MIN";
+    infty = 1e31;
+    
+    qdo_exist = false;
+    bnd_exist = false;
+    objsense_exist = false;
+    
     std::ifstream readFile(fileName);
     
     if (readFile.is_open())
