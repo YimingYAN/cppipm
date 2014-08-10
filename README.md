@@ -7,13 +7,13 @@ C++ implementation of the Interior Point Method (CPPIPM)
 Eigen forms the linear algebra core of this software.
 
 ###How to use
-For QP:
+QP:
 
 ```
   Algorithm* test = new cppipm(Q,A,b,c); test -> solve();
 ```
 
-For LP:
+LP:
 
 ```
   Algorithm* test = new cppipm(A,b,c);  test -> solve(); 
