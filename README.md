@@ -25,12 +25,8 @@ Or:
   Algorithm* test = new cppipm(otherProblem);  test -> solve();
 ```
 
-
-
 ###Example
 See test.cpp
-
-###Matlab Interface
 
 ###Todo
 - [x] Switch from Armadillo to Eigen
