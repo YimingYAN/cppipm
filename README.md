@@ -9,15 +9,21 @@ Eigen forms the linear algebra core of this software.
 ###How to use
 For QP:
 
-```Algorithm* test = new cppipm(Q,A,b,c); test -> solve();```
+```
+  Algorithm* test = new cppipm(Q,A,b,c); test -> solve();
+```
 
 For LP:
 
-```Algorithm* test = new cppipm(A,b,c);  test -> solve(); ```
+```
+  Algorithm* test = new cppipm(A,b,c);  test -> solve(); 
+```
 
 Or:
 
-```Algorithm* test = new cppipm(otherProblem);  test -> solve();```
+```
+  Algorithm* test = new cppipm(otherProblem);  test -> solve();
+```
 
 
 
@@ -26,10 +32,8 @@ See test.cpp
 
 ###Matlab Interface
 
-###Technical details
-
-
 ###Todo
+- [x] Switch from Armadillo to Eigen
 - [ ] Multiple centrality correctors from J. Gondizo
 - [ ] Cholesky decomposition for symmetric indefinite matrix (MA27 or MA57)
 - [ ] Active-set preidiction class
