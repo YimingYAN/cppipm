@@ -34,6 +34,7 @@ See test.cpp
 
 ###Todo
 - [x] Switch from Armadillo to Eigen
+- [ ] NewtonDiection Class
 - [ ] Multiple centrality correctors from J. Gondizo
 - [ ] Cholesky decomposition for symmetric indefinite matrix (MA27 or MA57)
 - [ ] Active-set preidiction class
