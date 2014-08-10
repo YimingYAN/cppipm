@@ -42,9 +42,9 @@ public:
     }
     
 protected:
-    int iter = 0;
-    double residual = 0.0;
-    double totalTime = 0.0;
+    int iter;
+    double residual;
+    double totalTime;
     
 private:
     virtual void initialPoint()             = 0;

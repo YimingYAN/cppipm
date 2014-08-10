@@ -25,8 +25,8 @@ public:
     vec b;     // | Data
     vec c;     // |
     
-    int m;     // number of constraints
-    int n;     // number of variables
+    long m;     // number of constraints
+    long n;     // number of variables
     
     // Constructors
     Problem() {}
@@ -34,9 +34,9 @@ public:
     /* QP */
     Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
     {
-        assert(iA.n_rows > 0 && iA.n_cols > 0);
-        m = iA.n_rows;
-        n = iA.n_cols;
+        assert(iA.rows() > 0 && iA.cols() > 0);
+        m = iA.rows();
+        n = iA.cols();
         
         Q = iQ;
         
@@ -48,16 +48,16 @@ public:
     /* LP */
     Problem(const mat &iA, const vec &ib, const vec &ic)
     {
-        assert(iA.n_rows > 0 && iA.n_cols > 0);
+        assert(iA.rows() > 0 && iA.cols() > 0);
         
-        m = iA.n_rows;
-        n = iA.n_cols;
+        m = iA.rows();
+        n = iA.cols();
         
         A = iA;
         b = ib;
         c = ic;
         
-        Q = mat(n,n, fill::zeros);
+        Q = mat::Zero(n,n);
     }
     
     /* Copy from other problem */

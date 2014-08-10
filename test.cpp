@@ -2,8 +2,8 @@
 #include "cppipm.h"
 #include "mpsReader.h"
 #include "Algorithm.h"
+#include "include/include_libs.h"
 
-using namespace arma;
 int main (int argc, char* argv[])
 {
     // test direct input

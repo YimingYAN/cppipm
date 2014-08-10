@@ -15,13 +15,14 @@ public:
     int maxIter;
     int verbose;
     double tol;
-    double eta = 0.99995;     // ratio for stepsizes
+    double eta;     // ratio for stepsizes
     
     Parameters()
     {
         maxIter = 50;
         tol = 1e-08;
         verbose = 2;
+        eta = 0.99995;
     }
     
     Parameters(int otherMaxIter, double otherTol, int otherVerbose)
@@ -29,6 +30,7 @@ public:
         maxIter = otherMaxIter;
         tol = otherTol;
         verbose = otherVerbose;
+        eta = 0.99995;
     }
     
     void set_maxIter(int otherMaxIter) { maxIter = otherMaxIter; }

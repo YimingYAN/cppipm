@@ -30,7 +30,7 @@ protected:
     Problem     prob;
     Parameters  pars;
     Status      stat;
-    wall_clock timer;
+    Eigen::BenchTimer timer;
     
     double alphax, alphas;
     double mu;
@@ -56,7 +56,7 @@ protected:
     void startTimer();
     void endTimer();
     
-    void _getDirections(vec& Rm, mat& L, mat& U, mat& P);
+    void _getDirections(vec& Rm, Factorization& factor);
     
     
 };

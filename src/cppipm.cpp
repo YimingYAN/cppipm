@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 
+
 // Constructors
 cppipm::cppipm()
 {
@@ -19,62 +20,69 @@ cppipm::cppipm()
 cppipm::cppipm(const Problem &iprob)
 {
     prob = Problem(iprob);
-    bc = max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
+    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 cppipm::cppipm(const Problem &iprob, const Parameters &ipars)
 {
     prob = Problem(iprob);
     pars = Parameters(ipars);
-    bc = max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
+    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 cppipm::cppipm(const mat &A, const vec &b, const vec &c)
 {
     prob = Problem(A, b, c);
-    bc = max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
+    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 cppipm::cppipm(const mat &Q, const mat &A, const vec &b, const vec &c)
 {
     prob = Problem(Q, A, b, c);
-    bc = max(norm(prob.b, 2), norm(prob.c, 2)) + 1;
+    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 void cppipm::initialPoint()
 {
+    vec e = vec::Ones(prob.n);
+    
     double delta_x, delta_s, delta_x_c, delta_s_c, pdct;
+    mat coeffM = prob.A*prob.A.transpose();
     
     // min norm(x) s.t. Ax = b
-    x = prob.A.t() * arma::solve(prob.A*prob.A.t(), prob.b);
+    x = prob.A.transpose() * coeffM.llt().solve(prob.b);
+    //x = prob.A.transpose() * coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
     
     // min norm(s) s.t. A'*y + s - Qx = c
-    y = arma::solve(prob.A*prob.A.t(), prob.A*prob.c);
-    s = prob.c - prob.A.t()*y + prob.Q*x;
+    y = coeffM.llt().solve(prob.A*prob.c);
+    //y = coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.A*prob.c);
+    s = prob.c - prob.A.transpose()*y + prob.Q*x;
     
     // delta_x and delta_s
-    delta_x = -1.5 * x.min();
-    delta_s = -1.5 * s.min();
+    delta_x = -1.5 * x.minCoeff();
+    delta_s = -1.5 * s.minCoeff();
     
     if (delta_x < 0) delta_x = 0;
     if (delta_s < 0) delta_s = 0;
     
     // delta_x_c and delta_s_c
-    pdct = 0.5 * sum((x+delta_x) % (s+delta_s));
-    delta_x_c = delta_x+pdct/(sum(s)+prob.n*delta_s);
-    delta_s_c = delta_s+pdct/(sum(x)+prob.n*delta_x);
+    vec temp = (x+delta_x * e);
+    temp = temp.cwiseProduct(s+delta_s * e);
+    pdct = 0.5 * temp.sum();
+    delta_x_c = delta_x+pdct/(s.sum()+prob.n*delta_s);
+    delta_s_c = delta_s+pdct/(x.sum()+prob.n*delta_x);
     
-    x = x + delta_x_c;
-    s = s + delta_s_c;
+    x = x + delta_x_c * e;
+    s = s + delta_s_c * e;
 }
 
 void cppipm::calResidual()
 {
-    mu = dot(x,s) / prob.n;
+    mu = x.dot(s) / prob.n;
     Rp = prob.b - prob.A*x;
-    Rd = prob.c - prob.A.t()*y - s + prob.Q*x;
+    Rd = prob.c - prob.A.transpose()*y - s + prob.Q*x;
     
-    residual = ( norm(Rp,2) + norm(Rd,2) + prob.n*mu ) / bc;
+    residual = ( Rp.norm() + Rd.norm() + prob.n*mu ) / bc;
 }
 
 bool cppipm::checkTermination()
@@ -129,56 +137,57 @@ void cppipm::calSearchDriection()
      [  S   0  X ] [ ds ] =   [ sigma*mu*e - dX_pred*dS_pred*e -  XSe]   [ Rm_corr2 ]
      
      */
+    vec e = vec::Ones(prob.n);
     
     // form the augmented system
     mat M_R1(prob.n, prob.m+prob.n);
     mat M_R2(prob.m, prob.m+prob.n);
     mat M(prob.m + prob.n, prob.m + prob.n);
-    mat L(prob.m + prob.n, prob.m + prob.n);
-    mat U(prob.m + prob.n, prob.m + prob.n);
-    mat P(prob.m + prob.n, prob.m + prob.n);
     vec theta(prob.n);
     
     // format the coeff. matrix for (dx, dy) in the augmented system
-    theta = s/x;
+    mat Theta(prob.n, prob.n);
+    Theta = s.cwiseQuotient(x).asDiagonal();
+    Theta = -prob.Q - Theta;
     
-    M_R1 = join_horiz( -prob.Q-diagmat(theta), prob.A.t());
-    M_R2 = join_horiz( prob.A,                 mat(prob.m, prob.m, fill::zeros) );
-    M = join_vert(M_R1, M_R2);
+    M_R1 << Theta,  prob.A.transpose();
+    M_R2 << prob.A, mat::Zero(prob.m, prob.m);
+    M << M_R1,
+         M_R2;
     
     // factorise M
-    lu(L,U,P,M);
+    Factorization factor = M.householderQr();
     
     // predictor step
-    vec Rm = -x%s;
-    _getDirections(Rm, L, U, P);
+    vec Rm = -x.cwiseProduct(s);
+    _getDirections(Rm, factor);
     getStepSize();
     
     // get sigma
-    sigma = dot(x + alphax*dx, s + alphas*ds) / prob.n;
+    vec temp = x + alphax*dx;
+    sigma = temp.dot(s + alphas*ds) / prob.n;
     sigma = pow( sigma/mu, 3.0);
     
     // corrector and centrality step
-    Rm = sigma*mu*ones(prob.n) - dx%ds - x%s;
-    _getDirections(Rm, L, U, P);
+    Rm = sigma * mu * e - dx.cwiseProduct(ds) - x.cwiseProduct(s);
+    _getDirections(Rm, factor);
 }
 
-void cppipm::_getDirections(vec& Rm, mat& L, mat& U, mat& P)
+void cppipm::_getDirections(vec& Rm, Factorization& factor)
 {
     vec rhs(prob.n + prob.m);
     vec dxy(prob.n + prob.m);
     
-    rhs = join_vert(Rd - Rm/x, Rp);
+    rhs << Rd - Rm.cwiseQuotient(x),
+           Rp;
     
     // solve for directions (dx,dy)
-    dxy = arma::solve(P.t(), rhs);
-    dxy = arma::solve(trimatl(L),dxy);
-    dxy = arma::solve(trimatu(U), dxy);
+    dxy = factor.solve(rhs);
     
-    dx = dxy.rows(0, prob.n-1);
-    dy = dxy.rows(prob.n, prob.m+prob.n-1);
-    ds = (Rm - s % dx) / x;
-
+    dx = dxy.head(prob.n);
+    dy = dxy.tail(prob.m);
+    ds = (Rm - s.cwiseProduct(dx));
+    ds = ds.cwiseQuotient(x);
 }
 
 void cppipm::getStepSize()
@@ -187,7 +196,7 @@ void cppipm::getStepSize()
     alphax = 10.0;
     alphas = 10.0;
     
-    for (int i=0; i<dx.n_rows; i++)
+    for (int i=0; i<dx.rows(); i++)
     {
         if (dx(i) < 0)
             if (alphax > -x(i)/dx(i))
@@ -269,10 +278,11 @@ void cppipm::printFooter()
 
 void cppipm::startTimer()
 {
-    timer.tic();
+    timer.start();
 }
 
 void cppipm::endTimer()
 {
-    totalTime = timer.toc();
+    timer.stop();
+    totalTime = timer.value();
 }
