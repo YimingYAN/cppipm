@@ -276,12 +276,13 @@ void cppipm::printFooter()
     
 }
 
-/*void cppipm::startTimer()
+void cppipm::startTimer()
 {
-    timer.tic();
+    timer.start();
 }
 
 void cppipm::endTimer()
 {
-    totalTime = timer.toc();
-}*/
+    timer.stop();
+    totalTime = timer.value();
+}

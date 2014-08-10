@@ -11,8 +11,11 @@
 
 #include <iostream>
 using namespace std;
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include "BenchTimer.h"
+
 using namespace Eigen;
 
 typedef MatrixXd mat;
