@@ -50,12 +50,12 @@ void cppipm::initialPoint()
     mat coeffM = prob.A*prob.A.transpose();
     
     // min norm(x) s.t. Ax = b
-    x = prob.A.transpose() * coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
-    //x = prob.A.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
+    x = prob.A.transpose() * coeffM.llt().solve(prob.b);
+    //x = prob.A.transpose() * coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
     
     // min norm(s) s.t. A'*y + s - Qx = c
-    y = coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.A*prob.c);
-    //y = prob.A.transpose().jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.c);
+    y = coeffM.llt().solve(prob.A*prob.c);
+    //y = coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.A*prob.c);
     s = prob.c - prob.A.transpose()*y + prob.Q*x;
     
     // delta_x and delta_s
