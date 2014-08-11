@@ -20,27 +20,33 @@ cppipm::cppipm()
 cppipm::cppipm(const Problem &iprob)
 {
     prob = Problem(iprob);
-    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 cppipm::cppipm(const Problem &iprob, const Parameters &ipars)
 {
     prob = Problem(iprob);
     pars = Parameters(ipars);
-    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 cppipm::cppipm(const mat &A, const vec &b, const vec &c)
 {
     prob = Problem(A, b, c);
-    bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
 cppipm::cppipm(const mat &Q, const mat &A, const vec &b, const vec &c)
 {
     prob = Problem(Q, A, b, c);
+}
+
+void cppipm::initialize()
+{
+    iter = 0;
+    totalTime = 0.0;
+    residual = 0.0;
+    
     bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
+
 
 void cppipm::initialPoint()
 {

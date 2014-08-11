@@ -43,6 +43,7 @@ protected:
     vec  x,  y,  s;
     vec dx, dy, ds;
     
+    void initialize();
     void initialPoint();
     void calResidual();
     bool checkTermination();

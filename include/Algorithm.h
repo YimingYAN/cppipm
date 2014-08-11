@@ -19,6 +19,8 @@ public:
 	 */    
     void solve()
     {
+        initialize();
+        
         printHeader();
         startTimer();
         
@@ -47,6 +49,7 @@ protected:
     double totalTime;
     
 private:
+    virtual void initialize()               = 0;
     virtual void initialPoint()             = 0;
     virtual void calResidual()              = 0;
     virtual bool checkTermination()         = 0;
