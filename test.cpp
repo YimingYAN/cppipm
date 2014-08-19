@@ -4,7 +4,7 @@
 #include "Algorithm.h"
 #include "include_libs.h"
 
-int main (int argc, char* argv[])
+int main ( )
 {
     // test direct input
     cout << "\nTest direct input: "<<endl;

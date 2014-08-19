@@ -1,9 +1,10 @@
 TEMPLATE = app
 TARGET = cppipm
 
-CONFIG += console
-CONFIG -= app_bundle
-CONFIG -= qt
+CONFIG += c++11
+CONFIG += thread
+
+QMAKE_CXXFLAGS += -O3
 
 INCLUDEPATH += include \
                lib \

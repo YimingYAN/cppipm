@@ -22,7 +22,7 @@ mpsReader::mpsReader(std::string fileName)
     bnd_exist = false;
     objsense_exist = false;
     
-    std::ifstream readFile(fileName.c_str());
+    std::ifstream readFile(fileName);
     
     if (readFile.is_open())
     {
