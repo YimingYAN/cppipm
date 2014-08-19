@@ -14,7 +14,7 @@ using namespace std;
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include "BenchTimer.h"
+#include "Eigen/src/BenchUtilities/BenchTimer.h"
 
 using namespace Eigen;
 

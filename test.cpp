@@ -2,7 +2,7 @@
 #include "cppipm.h"
 #include "mpsReader.h"
 #include "Algorithm.h"
-#include "include/include_libs.h"
+#include "include_libs.h"
 
 int main (int argc, char* argv[])
 {
