@@ -18,9 +18,7 @@ SOURCES += test.cpp \
 HEADERS += include/*.h \
            lib/Eigen/* \
     lib/Eigen/src/BenchUtilities/BenchTimer.h \
-    lib/Eigen/src/Cholesky/LDLT.h \
-    lib/Eigen/src/Cholesky/LLT.h \
-    lib/Eigen/src/Cholesky/LLT_MKL.h \
+    lib/Eigen/src/Cholesky/*.h \
     lib/Eigen/src/CholmodSupport/CholmodSupport.h \
     lib/Eigen/src/Core/arch/AltiVec/Complex.h \
     lib/Eigen/src/Core/arch/AltiVec/PacketMath.h \
@@ -30,28 +28,7 @@ HEADERS += include/*.h \
     lib/Eigen/src/Core/arch/SSE/Complex.h \
     lib/Eigen/src/Core/arch/SSE/MathFunctions.h \
     lib/Eigen/src/Core/arch/SSE/PacketMath.h \
-    lib/Eigen/src/Core/products/CoeffBasedProduct.h \
-    lib/Eigen/src/Core/products/GeneralBlockPanelKernel.h \
-    lib/Eigen/src/Core/products/GeneralMatrixMatrix.h \
-    lib/Eigen/src/Core/products/GeneralMatrixMatrix_MKL.h \
-    lib/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h \
-    lib/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_MKL.h \
-    lib/Eigen/src/Core/products/GeneralMatrixVector.h \
-    lib/Eigen/src/Core/products/GeneralMatrixVector_MKL.h \
-    lib/Eigen/src/Core/products/Parallelizer.h \
-    lib/Eigen/src/Core/products/SelfadjointMatrixMatrix.h \
-    lib/Eigen/src/Core/products/SelfadjointMatrixMatrix_MKL.h \
-    lib/Eigen/src/Core/products/SelfadjointMatrixVector.h \
-    lib/Eigen/src/Core/products/SelfadjointMatrixVector_MKL.h \
-    lib/Eigen/src/Core/products/SelfadjointProduct.h \
-    lib/Eigen/src/Core/products/SelfadjointRank2Update.h \
-    lib/Eigen/src/Core/products/TriangularMatrixMatrix.h \
-    lib/Eigen/src/Core/products/TriangularMatrixMatrix_MKL.h \
-    lib/Eigen/src/Core/products/TriangularMatrixVector.h \
-    lib/Eigen/src/Core/products/TriangularMatrixVector_MKL.h \
-    lib/Eigen/src/Core/products/TriangularSolverMatrix.h \
-    lib/Eigen/src/Core/products/TriangularSolverMatrix_MKL.h \
-    lib/Eigen/src/Core/products/TriangularSolverVector.h \
+    lib/Eigen/src/Core/products/*.h \
     lib/Eigen/src/Core/util/BlasUtil.h \
     lib/Eigen/src/Core/util/Constants.h \
     lib/Eigen/src/Core/util/DisableStupidWarnings.h \
