@@ -82,6 +82,7 @@ struct redux_novec_unroller
 
   typedef typename Derived::Scalar Scalar;
 
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
     return func(redux_novec_unroller<Func, Derived, Start, HalfLength>::run(mat,func),
@@ -99,6 +100,7 @@ struct redux_novec_unroller<Func, Derived, Start, 1>
 
   typedef typename Derived::Scalar Scalar;
 
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func&)
   {
     return mat.coeffByOuterInner(outer, inner);
@@ -112,6 +114,7 @@ template<typename Func, typename Derived, int Start>
 struct redux_novec_unroller<Func, Derived, Start, 0>
 {
   typedef typename Derived::Scalar Scalar;
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE Scalar run(const Derived&, const Func&) { return Scalar(); }
 };
 
@@ -170,6 +173,7 @@ struct redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::Index Index;
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Derived& mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
@@ -299,10 +303,15 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
   static EIGEN_STRONG_INLINE Scalar run(const Derived& mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
-    Scalar res = func.predux(redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
-    if (VectorizedSize != Size)
-      res = func(res,redux_novec_unroller<Func, Derived, VectorizedSize, Size-VectorizedSize>::run(mat,func));
-    return res;
+    if (VectorizedSize > 0) {
+      Scalar res = func.predux(redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
+      if (VectorizedSize != Size)
+        res = func(res,redux_novec_unroller<Func, Derived, VectorizedSize, Size-VectorizedSize>::run(mat,func));
+      return res;
+    }
+    else {
+      return redux_novec_unroller<Func, Derived, 0, Size>::run(mat,func);
+    }
   }
 };
 

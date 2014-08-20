@@ -20,7 +20,6 @@ public:
     /* 
      * Overwrite the constractors
      */
-    cppipm();
     cppipm(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
     cppipm(const mat &A, const vec &b, const vec &c);                  // LP
     cppipm(const Problem &prob);

@@ -66,8 +66,7 @@ template<typename Lhs, typename Rhs> struct product_type
     MaxDepth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::MaxColsAtCompileTime,
                                            _Rhs::MaxRowsAtCompileTime),
     Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::ColsAtCompileTime,
-                                        _Rhs::RowsAtCompileTime),
-    LargeThreshold = EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                                        _Rhs::RowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
@@ -397,7 +396,7 @@ struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
   internal::plain_array<Scalar,EIGEN_SIZE_MIN_PREFER_FIXED(Size,MaxSize)+(ForceAlignment?PacketSize:0),0> m_data;
   EIGEN_STRONG_INLINE Scalar* data() {
     return ForceAlignment
-            ? reinterpret_cast<Scalar*>((reinterpret_cast<size_t>(m_data.array) & ~(size_t(15))) + 16)
+            ? reinterpret_cast<Scalar*>((reinterpret_cast<size_t>(m_data.array) & ~(size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES)
             : m_data.array;
   }
   #endif
@@ -446,7 +445,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     if(!evalToDest)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = dest.size();
+      Index size = dest.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       if(!alphaIsCompatible)
@@ -511,7 +510,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
     if(!DirectlyUseRhs)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = actualRhs.size();
+      Index size = actualRhs.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
@@ -565,6 +564,40 @@ template<> struct gemv_selector<OnTheRight,RowMajor,false>
   *
   * \sa lazyProduct(), operator*=(const MatrixBase&), Cwise::operator*()
   */
+#ifndef __CUDACC__
+
+#ifdef EIGEN_TEST_EVALUATORS
+template<typename Derived>
+template<typename OtherDerived>
+inline const Product<Derived, OtherDerived>
+MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
+{
+  // A note regarding the function declaration: In MSVC, this function will sometimes
+  // not be inlined since DenseStorage is an unwindable object for dynamic
+  // matrices and product types are holding a member to store the result.
+  // Thus it does not help tagging this function with EIGEN_STRONG_INLINE.
+  enum {
+    ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
+                   || OtherDerived::RowsAtCompileTime==Dynamic
+                   || int(Derived::ColsAtCompileTime)==int(OtherDerived::RowsAtCompileTime),
+    AreVectors = Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime,
+    SameSizes = EIGEN_PREDICATE_SAME_MATRIX_SIZE(Derived,OtherDerived)
+  };
+  // note to the lost user:
+  //    * for a dot product use: v1.dot(v2)
+  //    * for a coeff-wise product use: v1.cwiseProduct(v2)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
+    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
+    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
+  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
+#ifdef EIGEN_DEBUG_PRODUCT
+  internal::product_type<Derived,OtherDerived>::debug();
+#endif
+  
+  return Product<Derived, OtherDerived>(derived(), other.derived());
+}
+#else
 template<typename Derived>
 template<typename OtherDerived>
 inline const typename ProductReturnType<Derived, OtherDerived>::Type
@@ -594,7 +627,9 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 #endif
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
+#endif
 
+#endif
 /** \returns an expression of the matrix product of \c *this and \a other without implicit evaluation.
   *
   * The returned product will behave like any other expressions: the coefficients of the product will be

@@ -255,8 +255,9 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       *
       * \sa logAbsDeterminant(), signDeterminant()
       */
-     Scalar absDeterminant()
+    Scalar absDeterminant()
     {
+      using std::abs;
       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
       // Initialize with the determinant of the row matrix
       Scalar det = Scalar(1.);
@@ -269,50 +270,53 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
           if(it.row() < j) continue;
           if(it.row() == j)
           {
-            det *= (std::abs)(it.value());
+            det *= abs(it.value());
             break;
           }
         }
-       }
-       return det;
-     }
+      }
+      return det;
+    }
 
-     /** \returns the natural log of the absolute value of the determinant of the matrix
-       * of which **this is the QR decomposition
-       *
-       * \note This method is useful to work around the risk of overflow/underflow that's
-       * inherent to the determinant computation.
-       *
-       * \sa absDeterminant(), signDeterminant()
-       */
-     Scalar logAbsDeterminant() const
-     {
-       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
-       Scalar det = Scalar(0.);
-       for (Index j = 0; j < this->cols(); ++j)
-       {
-         for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
-         {
-           if(it.row() < j) continue;
-           if(it.row() == j)
-           {
-             det += (std::log)((std::abs)(it.value()));
-             break;
-           }
-         }
-       }
-       return det;
-     }
+    /** \returns the natural log of the absolute value of the determinant of the matrix
+      * of which **this is the QR decomposition
+      *
+      * \note This method is useful to work around the risk of overflow/underflow that's
+      * inherent to the determinant computation.
+      *
+      * \sa absDeterminant(), signDeterminant()
+      */
+    Scalar logAbsDeterminant() const
+    {
+      using std::log;
+      using std::abs;
 
-     /** \returns A number representing the sign of the determinant
-       *
-       * \sa absDeterminant(), logAbsDeterminant()
-       */
-     Scalar signDeterminant()
-     {
-       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
-       return Scalar(m_detPermR);
-     }
+      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+      Scalar det = Scalar(0.);
+      for (Index j = 0; j < this->cols(); ++j)
+      {
+        for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
+        {
+          if(it.row() < j) continue;
+          if(it.row() == j)
+          {
+            det += log(abs(it.value()));
+            break;
+          }
+        }
+      }
+      return det;
+    }
+
+    /** \returns A number representing the sign of the determinant
+      *
+      * \sa absDeterminant(), logAbsDeterminant()
+      */
+    Scalar signDeterminant()
+    {
+      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+      return Scalar(m_detPermR);
+    }
 
   protected:
     // Functions 

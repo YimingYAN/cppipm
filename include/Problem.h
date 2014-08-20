@@ -63,7 +63,6 @@ public:
     /* Copy from other problem */
     Problem(const Problem& otherProb)
     {
-        assert(otherProb.n > 0 && otherProb.m > 0);
         
         m = otherProb.m;
         n = otherProb.n;
@@ -82,8 +81,8 @@ public:
     
     
     vec getOptx() const { return optx; }
-    vec getOpty() const { return opty; };
-    vec getOpts() const { return opts; };
+    vec getOpty() const { return opty; }
+    vec getOpts() const { return opts; }
 };
 
 #endif

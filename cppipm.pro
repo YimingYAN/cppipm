@@ -271,7 +271,19 @@ HEADERS += include/*.h \
     lib/Eigen/src/SVD/JacobiSVD.h \
     lib/Eigen/src/SVD/JacobiSVD_MKL.h \
     lib/Eigen/src/SVD/UpperBidiagonalization.h \
-    lib/Eigen/src/UmfPackSupport/UmfPackSupport.h
+    lib/Eigen/src/UmfPackSupport/UmfPackSupport.h \
+    lib/Eigen/BenchUtilities/BenchTimer.h \
+    lib/Eigen/src/Core/arch/AVX/Complex.h \
+    lib/Eigen/src/Core/arch/AVX/PacketMath.h \
+    lib/Eigen/src/Core/functors/AssignmentFunctors.h \
+    lib/Eigen/src/Core/functors/BinaryFunctors.h \
+    lib/Eigen/src/Core/functors/NullaryFunctors.h \
+    lib/Eigen/src/Core/functors/StlFunctors.h \
+    lib/Eigen/src/Core/functors/UnaryFunctors.h \
+    lib/Eigen/src/Core/AssignEvaluator.h \
+    lib/Eigen/src/Core/CoreEvaluators.h \
+    lib/Eigen/src/Core/Product.h \
+    lib/Eigen/src/Core/ProductEvaluators.h
 
 OTHER_FILES += \
     examples/TESTPROB.QPS

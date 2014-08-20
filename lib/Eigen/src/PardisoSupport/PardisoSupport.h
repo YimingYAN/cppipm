@@ -96,7 +96,7 @@ namespace internal
 }
 
 template<class Derived>
-class PardisoImpl
+class PardisoImpl : internal::noncopyable
 {
     typedef internal::pardiso_traits<Derived> Traits;
   public:
@@ -219,7 +219,7 @@ class PardisoImpl
     void pardisoInit(int type)
     {
       m_type = type;
-      bool symmetric = abs(m_type) < 10;
+      bool symmetric = std::abs(m_type) < 10;
       m_iparm[0] = 1;   // No solver default
       m_iparm[1] = 3;   // use Metis for the ordering
       m_iparm[2] = 1;   // Numbers of processors, value of OMP_NUM_THREADS
@@ -277,8 +277,6 @@ class PardisoImpl
     mutable IntColVectorType m_perm;
     Index m_size;
     
-  private:
-    PardisoImpl(PardisoImpl &) {}
 };
 
 template<class Derived>
@@ -434,9 +432,6 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
     {
       m_matrix = matrix;
     }
-    
-  private:
-    PardisoLU(PardisoLU& ) {}
 };
 
 /** \ingroup PardisoSupport_Module
@@ -493,9 +488,6 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
       m_matrix.resize(matrix.rows(), matrix.cols());
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }
-    
-  private:
-    PardisoLLT(PardisoLLT& ) {}
 };
 
 /** \ingroup PardisoSupport_Module
@@ -552,9 +544,6 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
       m_matrix.resize(matrix.rows(), matrix.cols());
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }
-    
-  private:
-    PardisoLDLT(PardisoLDLT& ) {}
 };
 
 namespace internal {

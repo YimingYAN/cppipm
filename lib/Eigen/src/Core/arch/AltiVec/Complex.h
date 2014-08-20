@@ -16,11 +16,14 @@ namespace internal {
 
 static Packet4ui  p4ui_CONJ_XOR = vec_mergeh((Packet4ui)p4i_ZERO, (Packet4ui)p4f_ZERO_);//{ 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
 static Packet16uc p16uc_COMPLEX_RE   = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 2), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
-static Packet16uc p16uc_COMPLEX_IM   = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 1), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
+static Packet16uc p16uc_COMPLEX_IM   = vec_sld(p16uc_DUPLICATE, (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
 static Packet16uc p16uc_COMPLEX_REV  = vec_sld(p16uc_REVERSE, p16uc_REVERSE, 8);//{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
 static Packet16uc p16uc_COMPLEX_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);//{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
-static Packet16uc p16uc_PSET_HI = (Packet16uc) vec_mergeh((Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 1));//{ 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
-static Packet16uc p16uc_PSET_LO = (Packet16uc) vec_mergeh((Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 2), (Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 3));//{ 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 };
+static Packet16uc p16uc_PSET_HI = (Packet16uc) vec_mergeh((Packet4ui)p16uc_COMPLEX_RE, (Packet4ui)p16uc_COMPLEX_IM);//{ 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
+static Packet16uc p16uc_PSET_LO = (Packet16uc) vec_mergel((Packet4ui)p16uc_COMPLEX_RE, (Packet4ui)p16uc_COMPLEX_IM);//{ 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 };
+static Packet16uc p16uc_COMPLEX_MASK16 = vec_sld((Packet16uc)p4i_ZERO, vec_splat((Packet16uc) vec_abs(p4i_MINUS16), 3), 8);//{ 0,0,0,0, 0,0,0,0, 16,16,16,16, 16,16,16,16};
+static Packet16uc p16uc_COMPLEX_TRANSPOSE_0 = vec_add(p16uc_PSET_HI, p16uc_COMPLEX_MASK16);//{ 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
+static Packet16uc p16uc_COMPLEX_TRANSPOSE_1 = vec_add(p16uc_PSET_LO, p16uc_COMPLEX_MASK16);//{ 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
 
 //---------- float ----------
 struct Packet2cf
@@ -33,6 +36,7 @@ struct Packet2cf
 template<> struct packet_traits<std::complex<float> >  : default_packet_traits
 {
   typedef Packet2cf type;
+  typedef Packet2cf half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
@@ -51,7 +55,7 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
+template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; typedef Packet2cf half; };
 
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
@@ -64,6 +68,22 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
   res.v = vec_perm(res.v, res.v, p16uc_PSET_HI);
   return res;
 }
+
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, DenseIndex stride)
+{
+  std::complex<float> EIGEN_ALIGN16 af[2];
+  af[0] = from[0*stride];
+  af[1] = from[1*stride];
+  return Packet2cf(vec_ld(0, (const float*)af));
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, DenseIndex stride)
+{
+  std::complex<float> EIGEN_ALIGN16 af[2];
+  vec_st(from.v, 0, (float*)af);
+  to[0*stride] = af[0];
+  to[1*stride] = af[1];
+}
+
 
 template<> EIGEN_STRONG_INLINE Packet2cf padd<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(vec_add(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf psub<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(vec_sub(a.v,b.v)); }
@@ -208,6 +228,13 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
 template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& x)
 {
   return Packet2cf(vec_perm(x.v, x.v, p16uc_COMPLEX_REV));
+}
+
+EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel)
+{
+  Packet4f tmp = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_COMPLEX_TRANSPOSE_0);
+  kernel.packet[1].v = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_COMPLEX_TRANSPOSE_1);
+  kernel.packet[0].v = tmp;
 }
 
 } // end namespace internal
