@@ -21,5 +21,4 @@ typedef MatrixXd mat;
 typedef VectorXd vec;
 typedef HouseholderQR<mat> Factorization;
 
-
 #endif

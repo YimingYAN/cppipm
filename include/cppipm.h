@@ -24,8 +24,11 @@ public:
     cppipm(const mat &A, const vec &b, const vec &c);                  // LP
     cppipm(const Problem &prob);
     cppipm(const Problem &prob, const Parameters &pars);
-    
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 protected:
+
     Problem     prob;
     Parameters  pars;
     Status      stat;

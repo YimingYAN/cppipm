@@ -15,11 +15,14 @@
 class Problem
 {
 private:
+
     vec optx;   // |
     vec opty;   // | Optimal solution
     vec opts;   // |
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     mat Q;     // |
     mat A;     // | Problem
     vec b;     // | Data
