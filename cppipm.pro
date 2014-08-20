@@ -272,3 +272,6 @@ HEADERS += include/*.h \
     lib/Eigen/src/SVD/JacobiSVD_MKL.h \
     lib/Eigen/src/SVD/UpperBidiagonalization.h \
     lib/Eigen/src/UmfPackSupport/UmfPackSupport.h
+
+OTHER_FILES += \
+    examples/TESTPROB.QPS
