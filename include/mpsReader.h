@@ -68,6 +68,7 @@ class mpsReader
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     mpsReader(std::string fileName);
     
     double time;
