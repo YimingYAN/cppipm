@@ -22,7 +22,4 @@ typedef VectorXd vec;
 typedef HouseholderQR<mat> Factorization;
 
 
-//#include <armadillo>
-//using namespace arma;
-
 #endif
