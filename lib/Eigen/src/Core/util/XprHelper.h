@@ -16,8 +16,8 @@
 // so currently we simply disable this optimization for gcc 4.3
 #if (defined __GNUG__) && !((__GNUC__==4) && (__GNUC_MINOR__==3))
   #define EIGEN_EMPTY_STRUCT_CTOR(X) \
-    EIGEN_STRONG_INLINE X() {} \
-    EIGEN_STRONG_INLINE X(const X& ) {}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE X() {} \
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE X(const X& ) {}
 #else
   #define EIGEN_EMPTY_STRUCT_CTOR(X)
 #endif
@@ -50,19 +50,19 @@ template<typename T, int Value> class variable_if_dynamic
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamic)
-    explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); assert(v == T(Value)); }
-    static T value() { return T(Value); }
-    void setValue(T) {}
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
+    EIGEN_DEVICE_FUNC static T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC void setValue(T) {}
 };
 
 template<typename T> class variable_if_dynamic<T, Dynamic>
 {
     T m_value;
-    variable_if_dynamic() { assert(false); }
+    EIGEN_DEVICE_FUNC variable_if_dynamic() { eigen_assert(false); }
   public:
-    explicit variable_if_dynamic(T value) : m_value(value) {}
-    T value() const { return m_value; }
-    void setValue(T value) { m_value = value; }
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamic(T value) : m_value(value) {}
+    EIGEN_DEVICE_FUNC T value() const { return m_value; }
+    EIGEN_DEVICE_FUNC void setValue(T value) { m_value = value; }
 };
 
 /** \internal like variable_if_dynamic but for DynamicIndex
@@ -71,19 +71,19 @@ template<typename T, int Value> class variable_if_dynamicindex
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamicindex)
-    explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); assert(v == T(Value)); }
-    static T value() { return T(Value); }
-    void setValue(T) {}
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
+    EIGEN_DEVICE_FUNC static T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC void setValue(T) {}
 };
 
 template<typename T> class variable_if_dynamicindex<T, DynamicIndex>
 {
     T m_value;
-    variable_if_dynamicindex() { assert(false); }
+    EIGEN_DEVICE_FUNC variable_if_dynamicindex() { eigen_assert(false); }
   public:
-    explicit variable_if_dynamicindex(T value) : m_value(value) {}
-    T value() const { return m_value; }
-    void setValue(T value) { m_value = value; }
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamicindex(T value) : m_value(value) {}
+    EIGEN_DEVICE_FUNC T value() const { return m_value; }
+    EIGEN_DEVICE_FUNC void setValue(T value) { m_value = value; }
 };
 
 template<typename T> struct functor_traits
@@ -101,6 +101,7 @@ template<typename T> struct packet_traits;
 template<typename T> struct unpacket_traits
 {
   typedef T type;
+  typedef T half;
   enum {size=1};
 };
 
@@ -136,7 +137,7 @@ class compute_matrix_flags
             ((Options&DontAlign)==0)
         && (
 #if EIGEN_ALIGN_STATICALLY
-             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % 16) == 0))
+             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0))
 #else
              0
 #endif
@@ -307,9 +308,9 @@ struct transfer_constness
   *
   * Example. Suppose that a, b, and c are of type Matrix3d. The user forms the expression a*(b+c).
   * b+c is an expression "sum of matrices", which we will denote by S. In order to determine how to nest it,
-  * the Product expression uses: nested<S, 3>::ret, which turns out to be Matrix3d because the internal logic of
+  * the Product expression uses: nested<S, 3>::type, which turns out to be Matrix3d because the internal logic of
   * nested determined that in this case it was better to evaluate the expression b+c into a temporary. On the other hand,
-  * since a is of type Matrix3d, the Product expression nests it as nested<Matrix3d, 3>::ret, which turns out to be
+  * since a is of type Matrix3d, the Product expression nests it as nested<Matrix3d, 3>::type, which turns out to be
   * const Matrix3d&, because the internal logic of nested determined that since a was already a matrix, there was no point
   * in copying it into another matrix.
   */
@@ -341,6 +342,7 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
 };
 
 template<typename T>
+EIGEN_DEVICE_FUNC
 T* const_cast_ptr(const T* ptr)
 {
   return const_cast<T*>(ptr);

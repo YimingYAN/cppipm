@@ -80,6 +80,34 @@ template<typename T> struct add_const_on_value_type<T*>        { typedef T const
 template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
 template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
+
+template<typename From, typename To>
+struct is_convertible_impl
+{
+private:
+  struct any_conversion
+  {
+    template <typename T> any_conversion(const volatile T&);
+    template <typename T> any_conversion(T&);
+  };
+  struct yes {int a[1];};
+  struct no  {int a[2];};
+
+  static yes test(const To&, int);
+  static no  test(any_conversion, ...);
+
+public:
+  static From ms_from;
+  enum { value = sizeof(test(ms_from, 0))==sizeof(yes) };
+};
+
+template<typename From, typename To>
+struct is_convertible
+{
+  enum { value = is_convertible_impl<typename remove_all<From>::type,
+                                     typename remove_all<To  >::type>::value };
+};
+
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
   */
@@ -88,7 +116,29 @@ template<bool Condition, typename T> struct enable_if;
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
 
+#if defined(__CUDA_ARCH__)
 
+namespace device {
+
+template<typename T> struct numeric_limits
+{
+  EIGEN_DEVICE_FUNC
+  static T epsilon() { return 0; }
+};
+template<> struct numeric_limits<float>
+{
+  EIGEN_DEVICE_FUNC
+  static float epsilon() { return __FLT_EPSILON__; }
+};
+template<> struct numeric_limits<double>
+{
+  EIGEN_DEVICE_FUNC
+  static double epsilon() { return __DBL_EPSILON__; }
+};
+
+}
+
+#endif
 
 /** \internal
   * A base class do disable default copy ctor and copy assignement operator.
@@ -237,6 +287,16 @@ template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
 } // end namespace internal
+
+namespace numext {
+  
+#if defined(__CUDA_ARCH__)
+template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = a; a = tmp; }
+#else
+template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
+#endif
+
+} // end namespace numext
 
 } // end namespace Eigen
 

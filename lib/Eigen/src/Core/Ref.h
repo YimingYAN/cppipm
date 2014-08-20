@@ -19,17 +19,17 @@ template<typename PlainObjectType, int Options = 0,
 /** \class Ref
   * \ingroup Core_Module
   *
-  * \brief A matrix or vector expression mapping an existing expressions
+  * \brief A matrix or vector expression mapping an existing expression
   *
   * \tparam PlainObjectType the equivalent matrix type of the mapped data
   * \tparam Options specifies whether the pointer is \c #Aligned, or \c #Unaligned.
   *                The default is \c #Unaligned.
   * \tparam StrideType optionally specifies strides. By default, Ref implies a contiguous storage along the inner dimension (inner stride==1),
-  *                   but accept a variable outer stride (leading dimension).
+  *                   but accepts a variable outer stride (leading dimension).
   *                   This can be overridden by specifying strides.
   *                   The type passed here must be a specialization of the Stride template, see examples below.
   *
-  * This class permits to write non template functions taking Eigen's object as parameters while limiting the number of copies.
+  * This class provides a way to write non-template functions taking Eigen objects as parameters while limiting the number of copies.
   * A Ref<> object can represent either a const expression or a l-value:
   * \code
   * // in-out argument:
@@ -39,10 +39,10 @@ template<typename PlainObjectType, int Options = 0,
   * void foo2(const Ref<const VectorXf>& x);
   * \endcode
   *
-  * In the in-out case, the input argument must satisfies the constraints of the actual Ref<> type, otherwise a compilation issue will be triggered.
+  * In the in-out case, the input argument must satisfy the constraints of the actual Ref<> type, otherwise a compilation issue will be triggered.
   * By default, a Ref<VectorXf> can reference any dense vector expression of float having a contiguous memory layout.
-  * Likewise, a Ref<MatrixXf> can reference any column major dense matrix expression of float whose column's elements are contiguously stored with
-  * the possibility to have a constant space inbetween each column, i.e.: the inner stride mmust be equal to 1, but the outer-stride (or leading dimension),
+  * Likewise, a Ref<MatrixXf> can reference any column-major dense matrix expression of float whose column's elements are contiguously stored with
+  * the possibility to have a constant space in-between each column, i.e. the inner stride must be equal to 1, but the outer stride (or leading dimension)
   * can be greater than the number of rows.
   *
   * In the const case, if the input expression does not match the above requirement, then it is evaluated into a temporary before being passed to the function.
@@ -58,15 +58,15 @@ template<typename PlainObjectType, int Options = 0,
   * foo2(A.col().segment(2,4)); // No temporary
   * \endcode
   *
-  * The range of inputs that can be referenced without temporary can be enlarged using the last two template parameter.
+  * The range of inputs that can be referenced without temporary can be enlarged using the last two template parameters.
   * Here is an example accepting an innerstride!=1:
   * \code
   * // in-out argument:
   * void foo3(Ref<VectorXf,0,InnerStride<> > x);
   * foo3(A.row());              // OK
   * \endcode
-  * The downside here is that the function foo3 might be significantly slower than foo1 because it won't be able to exploit vectorization, and will involved more
-  * expensive address computations even if the input is contiguously stored in memory. To overcome this issue, one might propose to overloads internally calling a
+  * The downside here is that the function foo3 might be significantly slower than foo1 because it won't be able to exploit vectorization, and will involve more
+  * expensive address computations even if the input is contiguously stored in memory. To overcome this issue, one might propose to overload internally calling a
   * template function, e.g.:
   * \code
   * // in the .h:
@@ -101,7 +101,7 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
   template<typename Derived> struct match {
     enum {
       HasDirectAccess = internal::has_direct_access<Derived>::ret,
-      StorageOrderMatch = PlainObjectType::IsVectorAtCompileTime || ((PlainObjectType::Flags&RowMajorBit)==(Derived::Flags&RowMajorBit)),
+      StorageOrderMatch = PlainObjectType::IsVectorAtCompileTime || Derived::IsVectorAtCompileTime || ((PlainObjectType::Flags&RowMajorBit)==(Derived::Flags&RowMajorBit)),
       InnerStrideMatch = int(StrideType::InnerStrideAtCompileTime)==int(Dynamic)
                       || int(StrideType::InnerStrideAtCompileTime)==int(Derived::InnerStrideAtCompileTime)
                       || (int(StrideType::InnerStrideAtCompileTime)==0 && int(Derived::InnerStrideAtCompileTime)==1),
@@ -172,8 +172,12 @@ protected:
     }
     else
       ::new (static_cast<Base*>(this)) Base(expr.data(), expr.rows(), expr.cols());
-    ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
-                                 StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
+    
+    if(Expression::IsVectorAtCompileTime && (!PlainObjectType::IsVectorAtCompileTime) && ((Expression::Flags&RowMajorBit)!=(PlainObjectType::Flags&RowMajorBit)))
+      ::new (&m_stride) StrideBase(expr.innerStride(), StrideType::InnerStrideAtCompileTime==0?0:1);
+    else
+      ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
+                                   StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
   }
 
   StrideBase m_stride;

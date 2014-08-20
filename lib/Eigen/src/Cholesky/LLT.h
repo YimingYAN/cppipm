@@ -41,7 +41,7 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * Example: \include LLT_example.cpp
   * Output: \verbinclude LLT_example.out
   *    
-  * \sa MatrixBase::llt(), class LDLT
+  * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
   */
  /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
@@ -115,7 +115,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       * Example: \include LLT_solve.cpp
       * Output: \verbinclude LLT_solve.out
       *
-      * \sa solveInPlace(), MatrixBase::llt()
+      * \sa solveInPlace(), MatrixBase::llt(), SelfAdjointView::llt()
       */
     template<typename Rhs>
     inline const internal::solve_retval<LLT, Rhs>
@@ -126,17 +126,6 @@ template<typename _MatrixType, int _UpLo> class LLT
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<LLT, Rhs>(*this, b.derived());
     }
-
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const
-    {
-      *result = this->solve(b);
-      return true;
-    }
-    
-    bool isPositiveDefinite() const { return true; }
-    #endif
 
     template<typename Derived>
     void solveInPlace(MatrixBase<Derived> &bAndX) const;
@@ -465,8 +454,10 @@ MatrixType LLT<MatrixType,_UpLo>::reconstructedMatrix() const
   return matrixL() * matrixL().adjoint().toDenseMatrix();
 }
 
+#ifndef __CUDACC__
 /** \cholesky_module
   * \returns the LLT decomposition of \c *this
+  * \sa SelfAdjointView::llt()
   */
 template<typename Derived>
 inline const LLT<typename MatrixBase<Derived>::PlainObject>
@@ -477,6 +468,7 @@ MatrixBase<Derived>::llt() const
 
 /** \cholesky_module
   * \returns the LLT decomposition of \c *this
+  * \sa SelfAdjointView::llt()
   */
 template<typename MatrixType, unsigned int UpLo>
 inline const LLT<typename SelfAdjointView<MatrixType, UpLo>::PlainObject, UpLo>
@@ -484,7 +476,8 @@ SelfAdjointView<MatrixType, UpLo>::llt() const
 {
   return LLT<PlainObject,UpLo>(m_matrix);
 }
-
+#endif // __CUDACC__
+  
 } // end namespace Eigen
 
 #endif // EIGEN_LLT_H

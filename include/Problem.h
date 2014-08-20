@@ -15,11 +15,14 @@
 class Problem
 {
 private:
+
     vec optx;   // |
     vec opty;   // | Optimal solution
     vec opts;   // |
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     mat Q;     // |
     mat A;     // | Problem
     vec b;     // | Data
@@ -63,7 +66,6 @@ public:
     /* Copy from other problem */
     Problem(const Problem& otherProb)
     {
-        assert(otherProb.n > 0 && otherProb.m > 0);
         
         m = otherProb.m;
         n = otherProb.n;
@@ -82,8 +84,8 @@ public:
     
     
     vec getOptx() const { return optx; }
-    vec getOpty() const { return opty; };
-    vec getOpts() const { return opts; };
+    vec getOpty() const { return opty; }
+    vec getOpts() const { return opts; }
 };
 
 #endif

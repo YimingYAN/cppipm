@@ -105,6 +105,8 @@ public:
     EIGEN_DEBUG_VAR(DstIsAligned)
     EIGEN_DEBUG_VAR(SrcIsAligned)
     EIGEN_DEBUG_VAR(JointAlignment)
+    EIGEN_DEBUG_VAR(Derived::SizeAtCompileTime)
+    EIGEN_DEBUG_VAR(OtherDerived::CoeffReadCost)
     EIGEN_DEBUG_VAR(InnerSize)
     EIGEN_DEBUG_VAR(InnerMaxSize)
     EIGEN_DEBUG_VAR(PacketSize)
@@ -139,6 +141,7 @@ struct assign_DefaultTraversal_CompleteUnrolling
     inner = Index % Derived1::InnerSizeAtCompileTime
   };
 
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src)
   {
     dst.copyCoeffByOuterInner(outer, inner, src);
@@ -149,12 +152,14 @@ struct assign_DefaultTraversal_CompleteUnrolling
 template<typename Derived1, typename Derived2, int Stop>
 struct assign_DefaultTraversal_CompleteUnrolling<Derived1, Derived2, Stop, Stop>
 {
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, int Index, int Stop>
 struct assign_DefaultTraversal_InnerUnrolling
 {
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src, typename Derived1::Index outer)
   {
     dst.copyCoeffByOuterInner(outer, Index, src);
@@ -165,6 +170,7 @@ struct assign_DefaultTraversal_InnerUnrolling
 template<typename Derived1, typename Derived2, int Stop>
 struct assign_DefaultTraversal_InnerUnrolling<Derived1, Derived2, Stop, Stop>
 {
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &, typename Derived1::Index) {}
 };
 
@@ -175,6 +181,7 @@ struct assign_DefaultTraversal_InnerUnrolling<Derived1, Derived2, Stop, Stop>
 template<typename Derived1, typename Derived2, int Index, int Stop>
 struct assign_LinearTraversal_CompleteUnrolling
 {
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src)
   {
     dst.copyCoeff(Index, src);
@@ -185,6 +192,7 @@ struct assign_LinearTraversal_CompleteUnrolling
 template<typename Derived1, typename Derived2, int Stop>
 struct assign_LinearTraversal_CompleteUnrolling<Derived1, Derived2, Stop, Stop>
 {
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &) {}
 };
 
@@ -249,6 +257,7 @@ struct assign_impl;
 template<typename Derived1, typename Derived2, int Unrolling, int Version>
 struct assign_impl<Derived1, Derived2, InvalidTraversal, Unrolling, Version>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &, const Derived2 &) { }
 };
 
@@ -256,6 +265,7 @@ template<typename Derived1, typename Derived2, int Version>
 struct assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
+  EIGEN_DEVICE_FUNC 
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
     const Index innerSize = dst.innerSize();
@@ -269,6 +279,7 @@ struct assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling, Version>
 template<typename Derived1, typename Derived2, int Version>
 struct assign_impl<Derived1, Derived2, DefaultTraversal, CompleteUnrolling, Version>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src)
   {
     assign_DefaultTraversal_CompleteUnrolling<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>
@@ -280,6 +291,7 @@ template<typename Derived1, typename Derived2, int Version>
 struct assign_impl<Derived1, Derived2, DefaultTraversal, InnerUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src)
   {
     const Index outerSize = dst.outerSize();
@@ -297,6 +309,7 @@ template<typename Derived1, typename Derived2, int Version>
 struct assign_impl<Derived1, Derived2, LinearTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
     const Index size = dst.size();
@@ -308,6 +321,7 @@ struct assign_impl<Derived1, Derived2, LinearTraversal, NoUnrolling, Version>
 template<typename Derived1, typename Derived2, int Version>
 struct assign_impl<Derived1, Derived2, LinearTraversal, CompleteUnrolling, Version>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src)
   {
     assign_LinearTraversal_CompleteUnrolling<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>
@@ -492,12 +506,25 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT(SameType,YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
+#ifdef EIGEN_TEST_EVALUATORS
+  
+#ifdef EIGEN_DEBUG_ASSIGN
+  internal::copy_using_evaluator_traits<Derived, OtherDerived>::debug();
+#endif
+  eigen_assert(rows() == other.rows() && cols() == other.cols());
+  internal::call_dense_assignment_loop(derived(),other.derived());
+  
+#else // EIGEN_TEST_EVALUATORS
+
 #ifdef EIGEN_DEBUG_ASSIGN
   internal::assign_traits<Derived, OtherDerived>::debug();
 #endif
   eigen_assert(rows() == other.rows() && cols() == other.cols());
   internal::assign_impl<Derived, OtherDerived, int(SameType) ? int(internal::assign_traits<Derived, OtherDerived>::Traversal)
-                                                       : int(InvalidTraversal)>::run(derived(),other.derived());
+                                                             : int(InvalidTraversal)>::run(derived(),other.derived());
+  
+#endif // EIGEN_TEST_EVALUATORS
+  
 #ifndef EIGEN_NO_DEBUG
   checkTransposeAliasing(other.derived());
 #endif
@@ -517,22 +544,28 @@ struct assign_selector;
 
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,false,false> {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
   template<typename ActualDerived, typename ActualOtherDerived>
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { other.evalTo(dst); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,true,false> {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.eval()); }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,false,true> {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose()); }
   template<typename ActualDerived, typename ActualOtherDerived>
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { Transpose<ActualDerived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,true,true> {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
 };
 
@@ -540,18 +573,21 @@ struct assign_selector<Derived,OtherDerived,true,true> {
 
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::operator=(const DenseBase<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
 }
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::operator=(const DenseBase& other)
 {
   return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
 }
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& other)
 {
   return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
@@ -559,6 +595,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& ot
 
 template<typename Derived>
 template <typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const DenseBase<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
@@ -566,6 +603,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const DenseBase<Othe
 
 template<typename Derived>
 template <typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());
@@ -573,6 +611,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<Othe
 
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());

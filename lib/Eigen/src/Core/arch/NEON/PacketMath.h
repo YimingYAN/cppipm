@@ -48,14 +48,25 @@ typedef uint32x4_t  Packet4ui;
   #define EIGEN_INIT_NEON_PACKET2(X, Y)       {X, Y}
   #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {X, Y, Z, W}
 #endif
-    
-#ifndef __pld
-#define __pld(x) asm volatile ( "   pld [%[addr]]\n" :: [addr] "r" (x) : "cc" );
+
+
+// arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
+// which available on LLVM and GCC (at least)
+#if (defined(__has_builtin) && __has_builtin(__builtin_prefetch)) || defined(__GNUC__)
+  #define EIGEN_ARM_PREFETCH(ADDR) __builtin_prefetch(ADDR);
+#elif defined __pld
+  #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
+#elif !defined(__aarch64__)
+  #define EIGEN_ARM_PREFETCH(ADDR) asm volatile ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
+#else
+  // by default no explicit prefetching
+  #define EIGEN_ARM_PREFETCH(ADDR)
 #endif
 
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
+  typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
@@ -73,6 +84,7 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
+  typedef Packet4i half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
@@ -85,12 +97,13 @@ template<> struct packet_traits<int>    : default_packet_traits
 // workaround gcc 4.2, 4.3 and 4.4 compilatin issue
 EIGEN_STRONG_INLINE float32x4_t vld1q_f32(const float* x) { return ::vld1q_f32((const float32_t*)x); }
 EIGEN_STRONG_INLINE float32x2_t vld1_f32 (const float* x) { return ::vld1_f32 ((const float32_t*)x); }
+EIGEN_STRONG_INLINE float32x2_t vld1_dup_f32 (const float* x) { return ::vld1_dup_f32 ((const float32_t*)x); }
 EIGEN_STRONG_INLINE void        vst1q_f32(float* to, float32x4_t from) { ::vst1q_f32((float32_t*)to,from); }
 EIGEN_STRONG_INLINE void        vst1_f32 (float* to, float32x2_t from) { ::vst1_f32 ((float32_t*)to,from); }
 #endif
 
-template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
-template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
+template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; typedef Packet4f half; };
+template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; typedef Packet4i half; };
 
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return vdupq_n_f32(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   { return vdupq_n_s32(from); }
@@ -209,8 +222,42 @@ template<> EIGEN_STRONG_INLINE void pstore<int>(int*       to, const Packet4i& f
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_f32(to, from); }
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_s32(to, from); }
 
-template<> EIGEN_STRONG_INLINE void prefetch<float>(const float* addr) { __pld(addr); }
-template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr) { __pld(addr); }
+template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, DenseIndex stride)
+{
+  Packet4f res;
+  res = vsetq_lane_f32(from[0*stride], res, 0);
+  res = vsetq_lane_f32(from[1*stride], res, 1);
+  res = vsetq_lane_f32(from[2*stride], res, 2);
+  res = vsetq_lane_f32(from[3*stride], res, 3);
+  return res;
+}
+template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, DenseIndex stride)
+{
+  Packet4i res;
+  res = vsetq_lane_s32(from[0*stride], res, 0);
+  res = vsetq_lane_s32(from[1*stride], res, 1);
+  res = vsetq_lane_s32(from[2*stride], res, 2);
+  res = vsetq_lane_s32(from[3*stride], res, 3);
+  return res;
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, DenseIndex stride)
+{
+  to[stride*0] = vgetq_lane_f32(from, 0);
+  to[stride*1] = vgetq_lane_f32(from, 1);
+  to[stride*2] = vgetq_lane_f32(from, 2);
+  to[stride*3] = vgetq_lane_f32(from, 3);
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, DenseIndex stride)
+{
+  to[stride*0] = vgetq_lane_s32(from, 0);
+  to[stride*1] = vgetq_lane_s32(from, 1);
+  to[stride*2] = vgetq_lane_s32(from, 2);
+  to[stride*3] = vgetq_lane_s32(from, 3);
+}
+
+template<> EIGEN_STRONG_INLINE void prefetch<float>(const float* addr) { EIGEN_ARM_PREFETCH(addr); }
+template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr) { EIGEN_ARM_PREFETCH(addr); }
 
 // FIXME only store the 2 first elements ?
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vst1q_f32(x, a); return x[0]; }
@@ -375,6 +422,7 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
   a_lo = vget_low_s32(a);
   a_hi = vget_high_s32(a);
   max = vpmax_s32(a_lo, a_hi);
+  max = vpmax_s32(max, max);
 
   return vget_lane_s32(max, 0);
 }
@@ -400,8 +448,29 @@ PALIGN_NEON(0,Packet4i,vextq_s32)
 PALIGN_NEON(1,Packet4i,vextq_s32)
 PALIGN_NEON(2,Packet4i,vextq_s32)
 PALIGN_NEON(3,Packet4i,vextq_s32)
-    
+
 #undef PALIGN_NEON
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4f,4>& kernel) {
+  float32x4x2_t tmp1 = vzipq_f32(kernel.packet[0], kernel.packet[1]);
+  float32x4x2_t tmp2 = vzipq_f32(kernel.packet[2], kernel.packet[3]);
+
+  kernel.packet[0] = vcombine_f32(vget_low_f32(tmp1.val[0]), vget_low_f32(tmp2.val[0]));
+  kernel.packet[1] = vcombine_f32(vget_high_f32(tmp1.val[0]), vget_high_f32(tmp2.val[0]));
+  kernel.packet[2] = vcombine_f32(vget_low_f32(tmp1.val[1]), vget_low_f32(tmp2.val[1]));
+  kernel.packet[3] = vcombine_f32(vget_high_f32(tmp1.val[1]), vget_high_f32(tmp2.val[1]));
+}
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4i,4>& kernel) {
+  int32x4x2_t tmp1 = vzipq_s32(kernel.packet[0], kernel.packet[1]);
+  int32x4x2_t tmp2 = vzipq_s32(kernel.packet[2], kernel.packet[3]);
+  kernel.packet[0] = vcombine_s32(vget_low_s32(tmp1.val[0]), vget_low_s32(tmp2.val[0]));
+  kernel.packet[1] = vcombine_s32(vget_high_s32(tmp1.val[0]), vget_high_s32(tmp2.val[0]));
+  kernel.packet[2] = vcombine_s32(vget_low_s32(tmp1.val[1]), vget_low_s32(tmp2.val[1]));
+  kernel.packet[3] = vcombine_s32(vget_high_s32(tmp1.val[1]), vget_high_s32(tmp2.val[1]));
+}
 
 } // end namespace internal
 

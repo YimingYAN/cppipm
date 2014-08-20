@@ -12,10 +12,6 @@
 
 
 // Constructors
-cppipm::cppipm()
-{
-    cout<<"No data input\n";
-}
 
 cppipm::cppipm(const Problem &iprob)
 {

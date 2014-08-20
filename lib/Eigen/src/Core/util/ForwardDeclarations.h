@@ -57,12 +57,12 @@ template<typename _Scalar, int _Rows, int _Cols,
     // differently and this makes gcc 3.4.6 happy, but it's ugly.
     // The error would only show up with EIGEN_DEFAULT_TO_ROW_MAJOR is defined
     // (when EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION is RowMajor)
-                          ( (_Rows==1 && _Cols!=1) ? RowMajor
+                          ( (_Rows==1 && _Cols!=1) ? Eigen::RowMajor
                           : !(_Cols==1 && _Rows!=1) ?  EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION
-                          : ColMajor ),
+                          : Eigen::ColMajor ),
 #else
-                          ( (_Rows==1 && _Cols!=1) ? RowMajor
-                          : (_Cols==1 && _Rows!=1) ? ColMajor
+                          ( (_Rows==1 && _Cols!=1) ? Eigen::RowMajor
+                          : (_Cols==1 && _Rows!=1) ? Eigen::ColMajor
                           : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
 #endif
          int _MaxRows = _Rows,
@@ -89,6 +89,7 @@ template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
 template<typename BinOp,     typename Lhs, typename Rhs>  class SelfCwiseBinaryOp;
 template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;
+template<typename Lhs, typename Rhs>                      class Product;
 template<typename Lhs, typename Rhs, int Mode>            class GeneralProduct;
 template<typename Lhs, typename Rhs, int NestingFlags>    class CoeffBasedProduct;
 
@@ -198,12 +199,12 @@ template<typename _Scalar, int _Rows, int _Cols,
     // differently and this makes gcc 3.4.6 happy, but it's ugly.
     // The error would only show up with EIGEN_DEFAULT_TO_ROW_MAJOR is defined
     // (when EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION is RowMajor)
-                          ( (_Rows==1 && _Cols!=1) ? RowMajor
+                          ( (_Rows==1 && _Cols!=1) ? Eigen::RowMajor
                           : !(_Cols==1 && _Rows!=1) ?  EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION
-                          : ColMajor ),
+                          : Eigen::ColMajor ),
 #else
-                          ( (_Rows==1 && _Cols!=1) ? RowMajor
-                          : (_Cols==1 && _Rows!=1) ? ColMajor
+                          ( (_Rows==1 && _Cols!=1) ? Eigen::RowMajor
+                          : (_Cols==1 && _Rows!=1) ? Eigen::ColMajor
                           : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
 #endif
          int _MaxRows = _Rows, int _MaxCols = _Cols> class Array;
@@ -235,35 +236,12 @@ template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Translation;
 
-#ifdef EIGEN2_SUPPORT
-template<typename Derived, int _Dim> class eigen2_RotationBase;
-template<typename Lhs, typename Rhs> class eigen2_Cross;
-template<typename Scalar> class eigen2_Quaternion;
-template<typename Scalar> class eigen2_Rotation2D;
-template<typename Scalar> class eigen2_AngleAxis;
-template<typename Scalar,int Dim> class eigen2_Transform;
-template <typename _Scalar, int _AmbientDim> class eigen2_ParametrizedLine;
-template <typename _Scalar, int _AmbientDim> class eigen2_Hyperplane;
-template<typename Scalar,int Dim> class eigen2_Translation;
-template<typename Scalar,int Dim> class eigen2_Scaling;
-#endif
-
-#if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
-template<typename Scalar> class Quaternion;
-template<typename Scalar,int Dim> class Transform;
-template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
-template <typename _Scalar, int _AmbientDim> class Hyperplane;
-template<typename Scalar,int Dim> class Scaling;
-#endif
-
-#if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
 template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar,int Dim,int Mode,int _Options=AutoAlign> class Transform;
 template <typename _Scalar, int _AmbientDim, int Options=AutoAlign> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim, int Options=AutoAlign> class Hyperplane;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
-#endif
 
 // MatrixFunctions module
 template<typename Derived> struct MatrixExponentialReturnValue;
@@ -271,7 +249,7 @@ template<typename Derived> class MatrixFunctionReturnValue;
 template<typename Derived> class MatrixSquareRootReturnValue;
 template<typename Derived> class MatrixLogarithmReturnValue;
 template<typename Derived> class MatrixPowerReturnValue;
-template<typename Derived, typename Lhs, typename Rhs> class MatrixPowerProduct;
+template<typename Derived> class MatrixComplexPowerReturnValue;
 
 namespace internal {
 template <typename Scalar>
@@ -281,18 +259,6 @@ struct stem_function
   typedef ComplexScalar type(ComplexScalar, int);
 };
 }
-
-
-#ifdef EIGEN2_SUPPORT
-template<typename ExpressionType> class Cwise;
-template<typename MatrixType> class Minor;
-template<typename MatrixType> class LU;
-template<typename MatrixType> class QR;
-template<typename MatrixType> class SVD;
-namespace internal {
-template<typename MatrixType, unsigned int Mode> struct eigen2_part_return_type;
-}
-#endif
 
 } // end namespace Eigen
 

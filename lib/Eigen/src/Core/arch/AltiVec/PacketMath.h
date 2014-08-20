@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Konstantinos Margaritis <markos@codex.gr>
+// Copyright (C) 2008-2014 Konstantinos Margaritis <markos@freevec.org>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -16,6 +16,10 @@ namespace internal {
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
+#endif
+
+#ifndef EIGEN_HAS_FUSED_MADD
+#define EIGEN_HAS_FUSED_MADD 1
 #endif
 
 #ifndef EIGEN_HAS_FUSE_CJMADD
@@ -56,29 +60,32 @@ typedef __vector unsigned char  Packet16uc;
 #define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
 
 // Define global static constants:
-static Packet4f p4f_COUNTDOWN = { 3.0, 2.0, 1.0, 0.0 };
-static Packet4i p4i_COUNTDOWN = { 3, 2, 1, 0 };
-static Packet16uc p16uc_REVERSE = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
-static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0);
-static Packet16uc p16uc_DUPLICATE = {0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
+static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
+static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
+static Packet16uc p16uc_REVERSE = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0); //{ 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15}
+static Packet16uc p16uc_DUPLICATE = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
 
-static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1);
-static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0);
-static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1);
+static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1); //{ 1, 1, 1, 1}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16); //{ -16, -16, -16, -16}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
+static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
+static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
 
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
+  typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=4,
+    HasHalfPacket=0,
 
     // FIXME check the Has*
+    HasDiv  = 1,
     HasSin  = 0,
     HasCos  = 0,
     HasLog  = 0,
@@ -89,6 +96,7 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
+  typedef Packet4i half;
   enum {
     // FIXME check the Has*
     Vectorizable = 1,
@@ -97,8 +105,8 @@ template<> struct packet_traits<int>    : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
-template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
+template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; typedef Packet4f half; };
+template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; typedef Packet4i half; };
 /*
 inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
 {
@@ -144,6 +152,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packetbi & v)
   return s;
 }
 */
+
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   float EIGEN_ALIGN16 af[4];
@@ -159,6 +168,65 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   {
   Packet4i vc = vec_ld(0, ai);
   vc = vec_splat(vc, 0);
   return vc;
+}
+
+
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet4f>(const float *a,
+                      Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
+{
+  a3 = vec_ld(0,a);
+  a0 = vec_splat(a3, 0);
+  a1 = vec_splat(a3, 1);
+  a2 = vec_splat(a3, 2);
+  a3 = vec_splat(a3, 3);
+}
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet4i>(const int *a,
+                      Packet4i& a0, Packet4i& a1, Packet4i& a2, Packet4i& a3)
+{
+  a3 = vec_ld(0,a);
+  a0 = vec_splat(a3, 0);
+  a1 = vec_splat(a3, 1);
+  a2 = vec_splat(a3, 2);
+  a3 = vec_splat(a3, 3);
+}
+
+template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, DenseIndex stride)
+{
+  float EIGEN_ALIGN16 af[4];
+  af[0] = from[0*stride];
+  af[1] = from[1*stride];
+  af[2] = from[2*stride];
+  af[3] = from[3*stride];
+ return vec_ld(0, af);
+}
+template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, DenseIndex stride)
+{
+  int EIGEN_ALIGN16 ai[4];
+  ai[0] = from[0*stride];
+  ai[1] = from[1*stride];
+  ai[2] = from[2*stride];
+  ai[3] = from[3*stride];
+ return vec_ld(0, ai);
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, DenseIndex stride)
+{
+  float EIGEN_ALIGN16 af[4];
+  vec_st(from, 0, af);
+  to[0*stride] = af[0];
+  to[1*stride] = af[1];
+  to[2*stride] = af[2];
+  to[3*stride] = af[3];
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, DenseIndex stride)
+{
+  int EIGEN_ALIGN16 ai[4];
+  vec_st(from, 0, ai);
+  to[0*stride] = ai[0];
+  to[1*stride] = ai[1];
+  to[2*stride] = ai[2];
+  to[3*stride] = ai[3];
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return vec_add(pset1<Packet4f>(a), p4f_COUNTDOWN); }
@@ -286,15 +354,15 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
   Packet4f p;
-  if((ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4f>(from);
-  else                              p = ploadu<Packet4f>(from);
+  if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet4f>(from);
+  else                             p = ploadu<Packet4f>(from);
   return vec_perm(p, p, p16uc_DUPLICATE);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   Packet4i p;
-  if((ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4i>(from);
-  else                              p = ploadu<Packet4i>(from);
+  if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet4i>(from);
+  else                             p = ploadu<Packet4i>(from);
   return vec_perm(p, p, p16uc_DUPLICATE);
 }
 
@@ -493,6 +561,32 @@ struct palign_impl<Offset,Packet4i>
       first = vec_sld(first, second, Offset*4);
   }
 };
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4f,4>& kernel) {
+  Packet4f t0, t1, t2, t3;
+  t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
+  t1 = vec_mergel(kernel.packet[0], kernel.packet[2]);
+  t2 = vec_mergeh(kernel.packet[1], kernel.packet[3]);
+  t3 = vec_mergel(kernel.packet[1], kernel.packet[3]);
+  kernel.packet[0] = vec_mergeh(t0, t2);
+  kernel.packet[1] = vec_mergel(t0, t2);
+  kernel.packet[2] = vec_mergeh(t1, t3);
+  kernel.packet[3] = vec_mergel(t1, t3);
+}
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4i,4>& kernel) {
+  Packet4i t0, t1, t2, t3;
+  t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
+  t1 = vec_mergel(kernel.packet[0], kernel.packet[2]);
+  t2 = vec_mergeh(kernel.packet[1], kernel.packet[3]);
+  t3 = vec_mergel(kernel.packet[1], kernel.packet[3]);
+  kernel.packet[0] = vec_mergeh(t0, t2);
+  kernel.packet[1] = vec_mergel(t0, t2);
+  kernel.packet[2] = vec_mergeh(t1, t3);
+  kernel.packet[3] = vec_mergel(t1, t3);
+}
 
 } // end namespace internal
 

@@ -37,63 +37,64 @@ class DiagonalBase : public EigenBase<Derived>
     typedef DenseMatrixType DenseType;
     typedef DiagonalMatrix<Scalar,DiagonalVectorType::SizeAtCompileTime,DiagonalVectorType::MaxSizeAtCompileTime> PlainObject;
 
+    EIGEN_DEVICE_FUNC
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    EIGEN_DEVICE_FUNC
     inline Derived& derived() { return *static_cast<Derived*>(this); }
 
+    EIGEN_DEVICE_FUNC
     DenseMatrixType toDenseMatrix() const { return derived(); }
     template<typename DenseDerived>
+    EIGEN_DEVICE_FUNC
     void evalTo(MatrixBase<DenseDerived> &other) const;
     template<typename DenseDerived>
+    EIGEN_DEVICE_FUNC
     void addTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() += diagonal(); }
     template<typename DenseDerived>
+    EIGEN_DEVICE_FUNC
     void subTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() -= diagonal(); }
 
+    EIGEN_DEVICE_FUNC
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
+    EIGEN_DEVICE_FUNC
     inline DiagonalVectorType& diagonal() { return derived().diagonal(); }
 
+    EIGEN_DEVICE_FUNC
     inline Index rows() const { return diagonal().size(); }
+    EIGEN_DEVICE_FUNC
     inline Index cols() const { return diagonal().size(); }
 
     /** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
       */
     template<typename MatrixDerived>
+    EIGEN_DEVICE_FUNC
     const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
     operator*(const MatrixBase<MatrixDerived> &matrix) const
     {
       return DiagonalProduct<MatrixDerived, Derived, OnTheLeft>(matrix.derived(), derived());
     }
 
+    EIGEN_DEVICE_FUNC
     inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> >
     inverse() const
     {
       return diagonal().cwiseInverse();
     }
     
+    EIGEN_DEVICE_FUNC
     inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> >
     operator*(const Scalar& scalar) const
     {
       return diagonal() * scalar;
     }
+    EIGEN_DEVICE_FUNC
     friend inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> >
     operator*(const Scalar& scalar, const DiagonalBase& other)
     {
       return other.diagonal() * scalar;
     }
-    
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived>
-    bool isApprox(const DiagonalBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
-    {
-      return diagonal().isApprox(other.diagonal(), precision);
-    }
-    template<typename OtherDerived>
-    bool isApprox(const MatrixBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
-    {
-      return toDenseMatrix().isApprox(other, precision);
-    }
-    #endif
 };
 
 template<typename Derived>
@@ -151,24 +152,31 @@ class DiagonalMatrix
   public:
 
     /** const version of diagonal(). */
+    EIGEN_DEVICE_FUNC
     inline const DiagonalVectorType& diagonal() const { return m_diagonal; }
     /** \returns a reference to the stored vector of diagonal coefficients. */
+    EIGEN_DEVICE_FUNC
     inline DiagonalVectorType& diagonal() { return m_diagonal; }
 
     /** Default constructor without initialization */
+    EIGEN_DEVICE_FUNC
     inline DiagonalMatrix() {}
 
     /** Constructs a diagonal matrix with given dimension  */
+    EIGEN_DEVICE_FUNC
     inline DiagonalMatrix(Index dim) : m_diagonal(dim) {}
 
     /** 2D constructor. */
+    EIGEN_DEVICE_FUNC
     inline DiagonalMatrix(const Scalar& x, const Scalar& y) : m_diagonal(x,y) {}
 
     /** 3D constructor. */
+    EIGEN_DEVICE_FUNC
     inline DiagonalMatrix(const Scalar& x, const Scalar& y, const Scalar& z) : m_diagonal(x,y,z) {}
 
     /** Copy constructor. */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     inline DiagonalMatrix(const DiagonalBase<OtherDerived>& other) : m_diagonal(other.diagonal()) {}
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -178,11 +186,13 @@ class DiagonalMatrix
 
     /** generic constructor from expression of the diagonal coefficients */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     explicit inline DiagonalMatrix(const MatrixBase<OtherDerived>& other) : m_diagonal(other)
     {}
 
     /** Copy operator. */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     DiagonalMatrix& operator=(const DiagonalBase<OtherDerived>& other)
     {
       m_diagonal = other.diagonal();
@@ -193,6 +203,7 @@ class DiagonalMatrix
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
+    EIGEN_DEVICE_FUNC
     DiagonalMatrix& operator=(const DiagonalMatrix& other)
     {
       m_diagonal = other.diagonal();
@@ -201,14 +212,19 @@ class DiagonalMatrix
     #endif
 
     /** Resizes to given size. */
+    EIGEN_DEVICE_FUNC
     inline void resize(Index size) { m_diagonal.resize(size); }
     /** Sets all coefficients to zero. */
+    EIGEN_DEVICE_FUNC
     inline void setZero() { m_diagonal.setZero(); }
     /** Resizes and sets all coefficients to zero. */
+    EIGEN_DEVICE_FUNC
     inline void setZero(Index size) { m_diagonal.setZero(size); }
     /** Sets this matrix to be the identity matrix of the current size. */
+    EIGEN_DEVICE_FUNC
     inline void setIdentity() { m_diagonal.setOnes(); }
     /** Sets this matrix to be the identity matrix of the given size. */
+    EIGEN_DEVICE_FUNC
     inline void setIdentity(Index size) { m_diagonal.setOnes(size); }
 };
 
@@ -255,9 +271,11 @@ class DiagonalWrapper
     #endif
 
     /** Constructor from expression of diagonal coefficients to wrap. */
+    EIGEN_DEVICE_FUNC
     inline DiagonalWrapper(DiagonalVectorType& a_diagonal) : m_diagonal(a_diagonal) {}
 
     /** \returns a const reference to the wrapped expression of diagonal coefficients. */
+    EIGEN_DEVICE_FUNC
     const DiagonalVectorType& diagonal() const { return m_diagonal; }
 
   protected:

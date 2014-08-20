@@ -43,7 +43,7 @@ namespace internal {
   * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
   * decomposition to determine whether a system of equations has a solution.
   *
-  * \sa MatrixBase::ldlt(), class LLT
+  * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt(), class LLT
   */
 template<typename _MatrixType, int _UpLo> class LDLT
 {
@@ -151,13 +151,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return m_sign == internal::PositiveSemiDef || m_sign == internal::ZeroSign;
     }
-    
-    #ifdef EIGEN2_SUPPORT
-    inline bool isPositiveDefinite() const
-    {
-      return isPositive();
-    }
-    #endif
 
     /** \returns true if the matrix is negative (semidefinite) */
     inline bool isNegative(void) const
@@ -179,7 +172,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * least-square solution of \f$ D y_3 = y_2 \f$ is computed. This does not mean that this function
       * computes the least-square solution of \f$ A x = b \f$ is \f$ A \f$ is singular.
       *
-      * \sa MatrixBase::ldlt()
+      * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt()
       */
     template<typename Rhs>
     inline const internal::solve_retval<LDLT, Rhs>
@@ -190,15 +183,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<LDLT, Rhs>(*this, b.derived());
     }
-
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const
-    {
-      *result = this->solve(b);
-      return true;
-    }
-    #endif
 
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
@@ -262,6 +246,7 @@ template<> struct ldlt_inplace<Lower>
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
+    typedef typename TranspositionType::StorageIndexType IndexType;
     eigen_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
 
@@ -274,31 +259,14 @@ template<> struct ldlt_inplace<Lower>
       return true;
     }
 
-    RealScalar cutoff(0), biggest_in_corner;
-
     for (Index k = 0; k < size; ++k)
     {
       // Find largest diagonal element
       Index index_of_biggest_in_corner;
-      biggest_in_corner = mat.diagonal().tail(size-k).cwiseAbs().maxCoeff(&index_of_biggest_in_corner);
+      mat.diagonal().tail(size-k).cwiseAbs().maxCoeff(&index_of_biggest_in_corner);
       index_of_biggest_in_corner += k;
 
-      if(k == 0)
-      {
-        // The biggest overall is the point of reference to which further diagonals
-        // are compared; if any diagonal is negligible compared
-        // to the largest overall, the algorithm bails.
-        cutoff = abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
-      }
-
-      // Finish early if the matrix is not full rank.
-      if(biggest_in_corner < cutoff)
-      {
-        for(Index i = k; i < size; i++) transpositions.coeffRef(i) = i;
-        break;
-      }
-
-      transpositions.coeffRef(k) = index_of_biggest_in_corner;
+      transpositions.coeffRef(k) = IndexType(index_of_biggest_in_corner);
       if(k != index_of_biggest_in_corner)
       {
         // apply the transposition while taking care to consider only
@@ -307,7 +275,7 @@ template<> struct ldlt_inplace<Lower>
         mat.row(k).head(k).swap(mat.row(index_of_biggest_in_corner).head(k));
         mat.col(k).tail(s).swap(mat.col(index_of_biggest_in_corner).tail(s));
         std::swap(mat.coeffRef(k,k),mat.coeffRef(index_of_biggest_in_corner,index_of_biggest_in_corner));
-        for(int i=k+1;i<index_of_biggest_in_corner;++i)
+        for(Index i=k+1;i<index_of_biggest_in_corner;++i)
         {
           Scalar tmp = mat.coeffRef(i,k);
           mat.coeffRef(i,k) = numext::conj(mat.coeffRef(index_of_biggest_in_corner,i));
@@ -328,15 +296,20 @@ template<> struct ldlt_inplace<Lower>
 
       if(k>0)
       {
-        temp.head(k) = mat.diagonal().head(k).asDiagonal() * A10.adjoint();
+        temp.head(k) = mat.diagonal().real().head(k).asDiagonal() * A10.adjoint();
         mat.coeffRef(k,k) -= (A10 * temp.head(k)).value();
         if(rs>0)
           A21.noalias() -= A20 * temp.head(k);
       }
-      if((rs>0) && (abs(mat.coeffRef(k,k)) > cutoff))
-        A21 /= mat.coeffRef(k,k);
-
+      
+      // In some previous versions of Eigen (e.g., 3.2.1), the scaling was omitted if the pivot
+      // was smaller than the cutoff value. However, soince LDLT is not rank-revealing
+      // we should only make sure we do not introduce INF or NaN values.
+      // LAPACK also uses 0 as the cutoff value.
       RealScalar realAkk = numext::real(mat.coeffRef(k,k));
+      if((rs>0) && (abs(realAkk) > RealScalar(0)))
+        A21 /= realAkk;
+
       if (sign == PositiveSemiDef) {
         if (realAkk < 0) sign = Indefinite;
       } else if (sign == NegativeSemiDef) {
@@ -470,6 +443,7 @@ template<typename MatrixType, int _UpLo>
 template<typename Derived>
 LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w, const typename NumTraits<typename MatrixType::Scalar>::Real& sigma)
 {
+  typedef typename TranspositionType::StorageIndexType IndexType;
   const Index size = w.rows();
   if (m_isInitialized)
   {
@@ -481,7 +455,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
     m_matrix.setZero();
     m_transpositions.resize(size);
     for (Index i = 0; i < size; i++)
-      m_transpositions.coeffRef(i) = i;
+      m_transpositions.coeffRef(i) = IndexType(i);
     m_temporary.resize(size);
     m_sign = sigma>=0 ? internal::PositiveSemiDef : internal::NegativeSemiDef;
     m_isInitialized = true;
@@ -512,18 +486,22 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
     // dst = D^-1 (L^-1 P b)
     // more precisely, use pseudo-inverse of D (see bug 241)
     using std::abs;
-    using std::max;
+    EIGEN_USING_STD_MATH(max);
     typedef typename LDLTType::MatrixType MatrixType;
-    typedef typename LDLTType::Scalar Scalar;
     typedef typename LDLTType::RealScalar RealScalar;
-    const Diagonal<const MatrixType> vectorD = dec().vectorD();
-    RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() * NumTraits<Scalar>::epsilon(),
-				 RealScalar(1) / NumTraits<RealScalar>::highest()); // motivated by LAPACK's xGELSS
+    const typename Diagonal<const MatrixType>::RealReturnType vectorD(dec().vectorD());
+    // In some previous versions, tolerance was set to the max of 1/highest and the maximal diagonal entry * epsilon
+    // as motivated by LAPACK's xGELSS:
+    // RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() *NumTraits<RealScalar>::epsilon(),RealScalar(1) / NumTraits<RealScalar>::highest());
+    // However, LDLT is not rank revealing, and so adjusting the tolerance wrt to the highest
+    // diagonal element is not well justified and to numerical issues in some cases.
+    // Moreover, Lapack's xSYTRS routines use 0 for the tolerance.
+    RealScalar tolerance = RealScalar(1) / NumTraits<RealScalar>::highest();
     for (Index i = 0; i < vectorD.size(); ++i) {
       if(abs(vectorD(i)) > tolerance)
-	dst.row(i) /= vectorD(i);
+        dst.row(i) /= vectorD(i);
       else
-	dst.row(i).setZero();
+        dst.row(i).setZero();
     }
 
     // dst = L^-T (D^-1 L^-1 P b)
@@ -576,7 +554,7 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   // L^* P
   res = matrixU() * res;
   // D(L^*P)
-  res = vectorD().asDiagonal() * res;
+  res = vectorD().real().asDiagonal() * res;
   // L(DL^*P)
   res = matrixL() * res;
   // P^T (LDL^*P)
@@ -585,8 +563,10 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   return res;
 }
 
+#ifndef __CUDACC__
 /** \cholesky_module
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
+  * \sa MatrixBase::ldlt()
   */
 template<typename MatrixType, unsigned int UpLo>
 inline const LDLT<typename SelfAdjointView<MatrixType, UpLo>::PlainObject, UpLo>
@@ -597,6 +577,7 @@ SelfAdjointView<MatrixType, UpLo>::ldlt() const
 
 /** \cholesky_module
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
+  * \sa SelfAdjointView::ldlt()
   */
 template<typename Derived>
 inline const LDLT<typename MatrixBase<Derived>::PlainObject>
@@ -604,6 +585,7 @@ MatrixBase<Derived>::ldlt() const
 {
   return LDLT<PlainObject>(derived());
 }
+#endif // __CUDACC__
 
 } // end namespace Eigen
 

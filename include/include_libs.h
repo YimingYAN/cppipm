@@ -12,18 +12,13 @@
 #include <iostream>
 using namespace std;
 
-#include <Eigen/Core>
 #include <Eigen/Dense>
-#include "BenchTimer.h"
+#include "Eigen/BenchUtilities/BenchTimer.h"
 
 using namespace Eigen;
 
 typedef MatrixXd mat;
 typedef VectorXd vec;
 typedef HouseholderQR<mat> Factorization;
-
-
-//#include <armadillo>
-//using namespace arma;
 
 #endif

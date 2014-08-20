@@ -151,6 +151,7 @@ class Matrix
       *
       * \callgraph
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {
       return Base::_set(other);
@@ -167,6 +168,7 @@ class Matrix
       * remain row-vectors and vectors remain vectors.
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix& operator=(const MatrixBase<OtherDerived>& other)
     {
       return Base::_set(other);
@@ -179,12 +181,14 @@ class Matrix
       * \copydetails DenseBase::operator=(const EigenBase<OtherDerived> &other)
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix& operator=(const EigenBase<OtherDerived> &other)
     {
       return Base::operator=(other);
     }
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived>& func)
     {
       return Base::operator=(func);
@@ -200,6 +204,7 @@ class Matrix
       *
       * \sa resize(Index,Index)
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix() : Base()
     {
       Base::_check_template_params();
@@ -207,45 +212,85 @@ class Matrix
     }
 
     // FIXME is it still needed
+    EIGEN_DEVICE_FUNC
     Matrix(internal::constructor_without_unaligned_array_assert)
       : Base(internal::constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 
-    /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
-      *
-      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
-      * it is redundant to pass the dimension here, so it makes more sense to use the default
-      * constructor Matrix() instead.
-      */
-    EIGEN_STRONG_INLINE explicit Matrix(Index dim)
-      : Base(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
+#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    Matrix(Matrix&& other)
+      : Base(std::move(other))
     {
       Base::_check_template_params();
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
-      eigen_assert(dim >= 0);
-      eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
-      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
+      if (RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic)
+        Base::_set_noalias(other);
     }
+    Matrix& operator=(Matrix&& other)
+    {
+      other.swap(*this);
+      return *this;
+    }
+#endif
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
+
+    // This constructor is for both 1x1 matrices and dynamic vectors
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE explicit Matrix(const T& x)
+    {
+      Base::_check_template_params();
+      Base::template _init1<T>(x);
+    }
+
     template<typename T0, typename T1>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const T0& x, const T1& y)
     {
       Base::_check_template_params();
       Base::template _init2<T0,T1>(x, y);
     }
     #else
+    /** \brief Constructs a fixed-sized matrix initialized with coefficients starting at \a data */
+    EIGEN_DEVICE_FUNC
+    explicit Matrix(const Scalar *data);
+
+    /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
+      *
+      * This is useful for dynamic-size vectors. For fixed-size vectors,
+      * it is redundant to pass these parameters, so one should use the default constructor
+      * Matrix() instead.
+      * 
+      * \warning This constructor is disabled for fixed-size \c 1x1 matrices. For instance,
+      * calling Matrix<double,1,1>(1) will call the initialization constructor: Matrix(const Scalar&).
+      * For fixed-size \c 1x1 matrices it is thefore recommended to use the default
+      * constructor Matrix() instead, especilly when using one of the non standard
+      * \c EIGEN_INITIALIZE_MATRICES_BY_{ZERO,\c NAN} macros (see \ref TopicPreprocessorDirectives).
+      */
+    EIGEN_STRONG_INLINE explicit Matrix(Index dim);
+    /** \brief Constructs an initialized 1x1 matrix with the given coefficient */
+    Matrix(const Scalar& x);
     /** \brief Constructs an uninitialized matrix with \a rows rows and \a cols columns.
       *
       * This is useful for dynamic-size matrices. For fixed-size matrices,
       * it is redundant to pass these parameters, so one should use the default constructor
-      * Matrix() instead. */
+      * Matrix() instead.
+      * 
+      * \warning This constructor is disabled for fixed-size \c 1x2 and \c 2x1 vectors. For instance,
+      * calling Matrix2f(2,1) will call the initialization constructor: Matrix(const Scalar& x, const Scalar& y).
+      * For fixed-size \c 1x2 or \c 2x1 vectors it is thefore recommended to use the default
+      * constructor Matrix() instead, especilly when using one of the non standard
+      * \c EIGEN_INITIALIZE_MATRICES_BY_{ZERO,\c NAN} macros (see \ref TopicPreprocessorDirectives).
+      */
+    EIGEN_DEVICE_FUNC
     Matrix(Index rows, Index cols);
+    
     /** \brief Constructs an initialized 2D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y);
     #endif
 
     /** \brief Constructs an initialized 3D vector with given coefficients */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       Base::_check_template_params();
@@ -255,6 +300,7 @@ class Matrix
       m_storage.data()[2] = z;
     }
     /** \brief Constructs an initialized 4D vector with given coefficients */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       Base::_check_template_params();
@@ -265,10 +311,10 @@ class Matrix
       m_storage.data()[3] = w;
     }
 
-    explicit Matrix(const Scalar *data);
 
     /** \brief Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const MatrixBase<OtherDerived>& other)
              : Base(other.rows() * other.cols(), other.rows(), other.cols())
     {
@@ -281,6 +327,7 @@ class Matrix
       Base::_set_noalias(other);
     }
     /** \brief Copy constructor */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const Matrix& other)
             : Base(other.rows() * other.cols(), other.rows(), other.cols())
     {
@@ -289,6 +336,7 @@ class Matrix
     }
     /** \brief Copy constructor with in-place evaluation */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived>& other)
     {
       Base::_check_template_params();
@@ -300,6 +348,7 @@ class Matrix
       * \sa MatrixBase::operator=(const EigenBase<OtherDerived>&)
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const EigenBase<OtherDerived> &other)
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
@@ -315,25 +364,21 @@ class Matrix
       * of same type it is enough to swap the data pointers.
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     { this->_swap(other.derived()); }
 
-    inline Index innerStride() const { return 1; }
-    inline Index outerStride() const { return this->innerSize(); }
+    EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
+    EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }
 
     /////////// Geometry module ///////////
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     explicit Matrix(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Matrix& operator=(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
-
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived>
-    explicit Matrix(const eigen2_RotationBase<OtherDerived,ColsAtCompileTime>& r);
-    template<typename OtherDerived>
-    Matrix& operator=(const eigen2_RotationBase<OtherDerived,ColsAtCompileTime>& r);
-    #endif
 
     // allow to extend Matrix outside Eigen
     #ifdef EIGEN_MATRIX_PLUGIN
