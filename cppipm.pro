@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = cppipm
+TARGET = test
 
 CONFIG += c++11
 CONFIG += thread
@@ -12,16 +12,12 @@ INCLUDEPATH += include \
                lib/Eigen/src/
 
 SOURCES += \
-    src/cppipm.cpp \
-    src/mpsReader.cpp \
+    src/*.cpp \
     examples/test.cpp
 
 HEADERS += include/*.h \
            lib/Eigen/* \
            lib/Eigen/BenchUtilities/BenchTimer.h
-
-OTHER_FILES += \
-    examples/*.QPS
 
 win32:{
     PWD_WIN = $${PWD}
