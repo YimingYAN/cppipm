@@ -60,7 +60,7 @@ int main ( )
         cout<< "ah....TESTPROB2"<<endl;
     }
     
-    /*try
+    try
     {
         cout<< "\n+++++ QAFIRO " <<endl;
         mpsReader mpsQAFIRO("QAFIRO.QPS");
@@ -85,7 +85,7 @@ int main ( )
     {
         cout<< "ah....SIMPLE"<<endl;
     }
-    */
+
     
 	return 0;
 }
