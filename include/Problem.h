@@ -15,18 +15,21 @@
 class Problem
 {
 private:
+
     vec optx;   // |
     vec opty;   // | Optimal solution
     vec opts;   // |
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     mat Q;     // |
     mat A;     // | Problem
     vec b;     // | Data
     vec c;     // |
     
-    int m;     // number of constraints
-    int n;     // number of variables
+    long m;     // number of constraints
+    long n;     // number of variables
     
     // Constructors
     Problem() {}
@@ -34,9 +37,9 @@ public:
     /* QP */
     Problem(const mat &iQ, const mat &iA, const vec &ib, const vec &ic)
     {
-        assert(iA.n_rows > 0 && iA.n_cols > 0);
-        m = iA.n_rows;
-        n = iA.n_cols;
+        assert(iA.rows() > 0 && iA.cols() > 0);
+        m = iA.rows();
+        n = iA.cols();
         
         Q = iQ;
         
@@ -48,22 +51,21 @@ public:
     /* LP */
     Problem(const mat &iA, const vec &ib, const vec &ic)
     {
-        assert(iA.n_rows > 0 && iA.n_cols > 0);
+        assert(iA.rows() > 0 && iA.cols() > 0);
         
-        m = iA.n_rows;
-        n = iA.n_cols;
+        m = iA.rows();
+        n = iA.cols();
         
         A = iA;
         b = ib;
         c = ic;
         
-        Q = mat(n,n, fill::zeros);
+        Q = mat::Zero(n,n);
     }
     
     /* Copy from other problem */
     Problem(const Problem& otherProb)
     {
-        assert(otherProb.n > 0 && otherProb.m > 0);
         
         m = otherProb.m;
         n = otherProb.n;
@@ -82,8 +84,8 @@ public:
     
     
     vec getOptx() const { return optx; }
-    vec getOpty() const { return opty; };
-    vec getOpts() const { return opts; };
+    vec getOpty() const { return opty; }
+    vec getOpts() const { return opts; }
 };
 
 #endif

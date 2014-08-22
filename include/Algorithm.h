@@ -14,9 +14,13 @@ class Algorithm
 {
     
 public:
-    
+	/*
+	 * Template method
+	 */    
     void solve()
     {
+        initialize();
+        
         printHeader();
         startTimer();
         
@@ -40,11 +44,12 @@ public:
     }
     
 protected:
-    int iter = 0;
-    double residual = 0.0;
-    double totalTime = 0.0;
+    int iter;
+    double residual;
+    double totalTime;
     
 private:
+    virtual void initialize()               = 0;
     virtual void initialPoint()             = 0;
     virtual void calResidual()              = 0;
     virtual bool checkTermination()         = 0;

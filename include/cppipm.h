@@ -20,17 +20,19 @@ public:
     /* 
      * Overwrite the constractors
      */
-    cppipm();
     cppipm(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
     cppipm(const mat &A, const vec &b, const vec &c);                  // LP
     cppipm(const Problem &prob);
     cppipm(const Problem &prob, const Parameters &pars);
-    
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 protected:
+
     Problem     prob;
     Parameters  pars;
     Status      stat;
-    wall_clock timer;
+    Eigen::BenchTimer timer;
     
     double alphax, alphas;
     double mu;
@@ -43,6 +45,7 @@ protected:
     vec  x,  y,  s;
     vec dx, dy, ds;
     
+    void initialize();
     void initialPoint();
     void calResidual();
     bool checkTermination();
@@ -56,7 +59,7 @@ protected:
     void startTimer();
     void endTimer();
     
-    void _getDirections(vec& Rm, mat& L, mat& U, mat& P);
+    void _getDirections(vec& Rm, Factorization& factor);
     
     
 };

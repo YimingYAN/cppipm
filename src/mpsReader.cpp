@@ -14,12 +14,20 @@
  */
 mpsReader::mpsReader(std::string fileName)
 {
+    // initialise
+    objsense = "MIN";
+    infty = 1e31;
+    
+    qdo_exist = false;
+    bnd_exist = false;
+    objsense_exist = false;
+    
     std::ifstream readFile(fileName);
     
     if (readFile.is_open())
     {
-        wall_clock timer;
-        timer.tic();
+        //wall_clock timer;
+        //timer.tic();
         
         // get rid of comments or blank line
         _findPos2Start(readFile);
@@ -34,7 +42,7 @@ mpsReader::mpsReader(std::string fileName)
         _extractData(readFile);
         
         readFile.close();
-        time = timer.toc();
+        //time = timer.toc();
         
         // output
         //_printData();
@@ -54,9 +62,7 @@ mpsReader::mpsReader(std::string fileName)
 int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
 {
     //cout<< "Tranforming to the standard form..."<<endl;
-    assert( lb.min() > - infty);
-    
-    mat tmp;
+    assert( lb.minCoeff() > - infty);
     
     int n_ubounds = 0;
     for (int i=0;i < ub.size(); i++)
@@ -65,15 +71,15 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
          n_ubounds ++;
     }
     
-    As = mat(A.n_rows + n_ubounds, A.n_cols + n_ubounds, fill::zeros);
-    bs = vec(b.n_rows + n_ubounds);
-    Qs = mat(Q.n_cols + n_ubounds, Q.n_cols + n_ubounds, fill::zeros);
-    cs = vec(c.n_rows+n_ubounds);
+    As = mat::Zero(A.rows() + n_ubounds, A.cols() + n_ubounds);
+    bs = vec(b.rows() + n_ubounds);
+    Qs = mat::Zero(Q.cols() + n_ubounds, Q.cols() + n_ubounds);
+    cs = vec(c.rows()+n_ubounds);
     
-    bs.rows(0, b.n_rows - 1) = b - A*lb;
-    As(0, 0, size(A)) = A;
-    Qs(0, 0, size(Q)) = Q;
-    cs.rows(0,c.n_rows-1) = c + 2*Q*lb;
+    bs.head( b.rows() ) = b - A*lb;
+    As.topLeftCorner( A.rows(), A.cols() ) = A;
+    Qs.topLeftCorner( Q.rows(), Q.cols() ) = Q;
+    cs.head(c.rows()) = c + 2*Q*lb;
     
     // append [0 0 0 ... 0 1 0 ...0] to As
     // and ub_i- lb+i to bs;
@@ -82,9 +88,9 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
     {
         if (fabs(ub(i) - infty) > 1)
         {
-            As(A.n_rows + counter, i) = 1;
-            As(A.n_rows + counter, A.n_cols + counter) = 1;
-            bs(b.n_rows + counter) = ub(i) - lb(i);
+            As(A.rows() + counter, i) = 1;
+            As(A.rows() + counter, A.cols() + counter) = 1;
+            bs(b.rows() + counter) = ub(i) - lb(i);
             counter ++;
         }
         
@@ -102,8 +108,8 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
 
 void mpsReader::_extractData(std::ifstream &readFile)
 {
-    mat Araw(n_rows, n_cols, fill::zeros);
-    vec braw(n_rows, fill::zeros);
+    mat Araw = mat::Zero(n_rows, n_cols);
+    vec braw = vec::Zero(n_rows);
     
     // get Araw
     _getAraw(readFile, Araw);
@@ -320,11 +326,11 @@ void mpsReader::_findPos2Start(std::ifstream &readFile)
 
 void mpsReader::_initializeData()
 {
-    Q   = mat(n_cols+n_rows_inq   , n_cols+n_rows_inq, fill::zeros);
-    A   = mat(n_rows_inq+n_rows_eq, n_cols+n_rows_inq, fill::zeros);
-    b   = vec(n_rows_inq+n_rows_eq,                    fill::zeros);
-    c   = vec(n_cols+n_rows_inq   ,         fill::zeros);
-    lb  = vec(n_cols+n_rows_inq   ,         fill::zeros);
+    Q   = mat::Zero(n_cols + n_rows_inq   , n_cols + n_rows_inq);
+    A   = mat::Zero(n_rows_inq + n_rows_eq, n_cols + n_rows_inq);
+    b   = vec::Zero(n_rows_inq + n_rows_eq);
+    c   = vec::Zero(n_cols + n_rows_inq   );
+    lb  = vec::Zero(n_cols + n_rows_inq   );
     ub  = vec(n_cols+n_rows_inq);  ub.fill(infty);
     
     objsense = "MIN";
@@ -464,16 +470,16 @@ void mpsReader::_splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b)
     for (int i=0; i< n_rows; i++)
     {
         if (row_labels[i] == "N")
-            c.rows(0,n_cols-1) = trans( Araw.row(i) );
+            c.head(n_cols) = Araw.row(i).transpose();
         else if (row_labels[i] == "E")
         {
-            A.submat(counter, 0, counter, n_cols-1) = Araw.row(i);
+            A.block(counter, 0, 1, n_cols) = Araw.row(i);
             b.row(counter) = braw.row(i);
             counter ++;
         }
         else if (row_labels[i] == "L")
         {
-            A.submat(counter, 0, counter, n_cols-1) = Araw.row(i);
+            A.block(counter, 0, 1, n_cols) = Araw.row(i);
             A(counter, n_cols + counter_inq) = 1;
             b.row(counter) = braw.row(i);
             counter ++;
@@ -481,7 +487,7 @@ void mpsReader::_splitRaw(mat &Araw, vec &braw, vec &c, mat &A, vec &b)
         }
         else if (row_labels[i] == "G")
         {
-            A.submat(counter, 0, counter, n_cols-1) = Araw.row(i);
+            A.block(counter, 0, 1, n_cols) = Araw.row(i);
             A(counter, n_cols + counter_inq) = -1;
             b.row(counter) = braw.row(i);
             counter ++;
@@ -500,7 +506,7 @@ int mpsReader::_getIndex(std::vector<std::string> &list, std::string item) const
 {
     int idx = (int) (std::find(list.begin(), list.end(), item) - list.begin());
     
-    if( idx >= list.size() )
+    if( idx >= (int) list.size() )
         idx = -1;
     
     return idx;
@@ -515,18 +521,17 @@ void mpsReader::_printData()
     std::cout<<"\tn_rows_eq  : "<<n_rows_eq<<std::endl;
     std::cout<<"\tn_rows_inq : "<<n_rows_inq<<std::endl;
     std::cout<<"\tn_cols     : "<<n_cols<<std::endl;
-    for (int i = 0; i <row_labels.size(); i++)
+    for (int i = 0; i < (int) row_labels.size(); i++)
         std::cout<<"\trow_labels["<<i<<"] <-> row_list["<<i<<"] : " <<row_labels[i]<< " <-> "<< row_list[i] << std::endl;
-    for (int i = 0; i <col_list.size(); i++)
+    for (int i = 0; i < (int) col_list.size(); i++)
         std::cout<<"\tcol_list["<<i<<"] :"<<col_list[i]<< std::endl;
     
-    Q.print("Q: ");
-    c.print("c: ");
-    A.print("A: ");
-    b.print("b ");
-    lb.print("lb: ");
-    ub.print("ub: ");
-    
+    cout<<"Q = \n"<<Q<<endl;
+    cout<<"c = \n"<<c<<endl;
+    cout<<"A = \n"<<A<<endl;
+    cout<<"b = \n"<<b<<endl;
+    cout<<"lb = \n"<<lb<<endl;
+    cout<<"ub = \n"<<ub<<endl;
     std::cout<<"---------------------"<<std::endl;
     std::cout<<"MPS file read. Time = [ "<<time<<"s ]"<<std::endl;
 }

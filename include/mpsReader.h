@@ -67,14 +67,16 @@ class mpsReader
 {
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     mpsReader(std::string fileName);
     
     double time;
     
     std::string Name;
-    std::string objsense = "MIN";
+    std::string objsense; //default "MIN"
     
-    double infty = 1e31;
+    double infty;         // large number, representing infinity
     
     int n_rows;
     int n_rows_eq;
@@ -109,10 +111,10 @@ private:
     long bnd_pos;
     long qdo_pos;
     
-    bool qdo_exist = false;
-    bool bnd_exist = false;
-    bool ranges_exist = false;      // currently not used
-    bool objsense_exist = false;
+    //bool flags, default false
+    bool qdo_exist;
+    bool bnd_exist;
+    bool objsense_exist;
     
     // Internal functions
     void _extractData(std::ifstream &readFile);

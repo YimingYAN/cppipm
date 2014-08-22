@@ -9,9 +9,16 @@
 #ifndef cppipm_include_libs_h
 #define cppipm_include_libs_h
 
-#include <armadillo>
 #include <iostream>
-using namespace arma;
 using namespace std;
+
+#include <Eigen/Dense>
+#include "Eigen/BenchUtilities/BenchTimer.h"
+
+using namespace Eigen;
+
+typedef MatrixXd mat;
+typedef VectorXd vec;
+typedef HouseholderQR<mat> Factorization;
 
 #endif
