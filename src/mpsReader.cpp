@@ -64,8 +64,6 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
     //cout<< "Tranforming to the standard form..."<<endl;
     assert( lb.minCoeff() > - infty);
     
-    mat tmp;
-    
     int n_ubounds = 0;
     for (int i=0;i < ub.size(); i++)
     {
@@ -508,7 +506,7 @@ int mpsReader::_getIndex(std::vector<std::string> &list, std::string item) const
 {
     int idx = (int) (std::find(list.begin(), list.end(), item) - list.begin());
     
-    if( idx >= list.size() )
+    if( idx >= (int) list.size() )
         idx = -1;
     
     return idx;
@@ -523,9 +521,9 @@ void mpsReader::_printData()
     std::cout<<"\tn_rows_eq  : "<<n_rows_eq<<std::endl;
     std::cout<<"\tn_rows_inq : "<<n_rows_inq<<std::endl;
     std::cout<<"\tn_cols     : "<<n_cols<<std::endl;
-    for (int i = 0; i <row_labels.size(); i++)
+    for (int i = 0; i < (int) row_labels.size(); i++)
         std::cout<<"\trow_labels["<<i<<"] <-> row_list["<<i<<"] : " <<row_labels[i]<< " <-> "<< row_list[i] << std::endl;
-    for (int i = 0; i <col_list.size(); i++)
+    for (int i = 0; i < (int) col_list.size(); i++)
         std::cout<<"\tcol_list["<<i<<"] :"<<col_list[i]<< std::endl;
     
     cout<<"Q = \n"<<Q<<endl;
