@@ -26,7 +26,7 @@ Or:
 ```
 
 ###Example
-See test.cpp
+See tests/test.cpp
 
 ###Todo
 - [x] Switch from Armadillo to Eigen
