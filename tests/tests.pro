@@ -11,4 +11,8 @@ CONFIG   -= qt
 
 QMAKE_CXXFLAGS += -O3
 
+SOURCES += test.cpp
+
+INCLUDEPATH += ../src
+
 LIBS += -L../src -lcppipm

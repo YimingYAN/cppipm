@@ -31,16 +31,11 @@ int main ( )
     
     // test read from QPS
     cout << "\nTest qps input : "<<endl;
-
-    mat Qs, As;
-    vec bs, cs;
     
     try
     {
         cout<< "\n++++++ TESTPROB " <<endl;
-        mpsReader mpsTESTPROB("TESTPROB.QPS");
-        mpsTESTPROB.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_testprob_test = new cppipm(Qs, As, bs, cs);
+        Algorithm* mps_testprob_test = new cppipm("TESTPROB.QPS");
         mps_testprob_test->solve();
     }
     catch (...)
@@ -50,9 +45,7 @@ int main ( )
         
     try {
         cout<< "\n++++++ TESTPROB2" <<endl;
-        mpsReader mpsTESTPROB2("TESTPROB2.QPS");
-        mpsTESTPROB2.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_testprob2_test = new cppipm(Qs, As, bs, cs);
+        Algorithm* mps_testprob2_test = new cppipm("TESTPROB2.QPS");
         mps_testprob2_test->solve();
     }
     catch (...)
@@ -63,9 +56,7 @@ int main ( )
     try
     {
         cout<< "\n+++++ QAFIRO " <<endl;
-        mpsReader mpsQAFIRO("QAFIRO.QPS");
-        mpsQAFIRO.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_qafiro_test = new cppipm(Qs, As, bs, cs);
+        Algorithm* mps_qafiro_test = new cppipm("QAFIRO.QPS");
         mps_qafiro_test->solve();
     }
     catch (...)
@@ -76,9 +67,7 @@ int main ( )
     try
     {
         cout<< "\n+++++ SIMPLE" <<endl;
-        mpsReader mpsSIMPLE("SIMPLE.QPS");
-        mpsSIMPLE.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_simple_test = new cppipm(Qs, As, bs, cs);
+        Algorithm* mps_simple_test = new cppipm("SIMPLE.QPS");
         mps_simple_test->solve();
     }
     catch (...)

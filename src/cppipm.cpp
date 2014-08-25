@@ -34,6 +34,16 @@ cppipm::cppipm(const mat &Q, const mat &A, const vec &b, const vec &c)
     prob = Problem(Q, A, b, c);
 }
 
+cppipm::cppipm(const string fileName)
+{
+    mpsReader mpsQAFIRO(fileName);
+    mat Q, A;
+    vec b, c;
+
+    mpsQAFIRO.trans2standardForm(Q, A, b, c);
+    prob = Problem(Q, A, b, c);
+}
+
 void cppipm::initialize()
 {
     iter = 0;
@@ -42,6 +52,7 @@ void cppipm::initialize()
     
     bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
+
 
 
 void cppipm::initialPoint()

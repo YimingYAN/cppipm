@@ -14,8 +14,3 @@ QMAKE_CXXFLAGS += -O3
 SOURCES += *.cpp
 HEADERS += *.h
 
-INCLUDEPATH += ../include \
-               ../lib \
-               ../lib/Eigen \
-               ../lib/Eigen/src/
-
