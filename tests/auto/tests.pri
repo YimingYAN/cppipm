@@ -12,12 +12,9 @@ DEFINES -= QT_NO_CAST_FROM_ASCII
 # prefix test binary with tst_
 !contains(TARGET, ^tst_.*):TARGET = $$join(TARGET,,"tst_")
 
-win32 {
-    lib = $$IDE_LIBRARY_PATH;$$IDE_PLUGIN_PATH
-    lib ~= s,/,\\,g
-    # the below gets added to later by testcase.prf
-    check.commands = cd . & set PATH=$$lib;%PATH%& cmd /c
-}
+win32:CONFIG(release, debug|release): LIBS+= -L$$OUT_PWD/../../../src/release -lcppipm
+else:win32:CONFIG(debug, debug|release): LIBS+= -L$$OUT_PWD/../../../src/debug -lcppipm
+else: LIBS+= -L$$OUT_PWD/../../../src -lcppipm
 
 OTHER_FILES += \
     ../testrpath.pri

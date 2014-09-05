@@ -9,6 +9,8 @@ CONFIG   += thread
 CONFIG   -= app_bundle
 CONFIG   -= qt
 
+DEFINES += CPPIPM_LIBRARY
+
 QMAKE_CXXFLAGS += -O3
 
 SOURCES += *.cpp
