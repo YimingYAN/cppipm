@@ -75,6 +75,5 @@ int main ( )
         cout<< "ah....SIMPLE"<<endl;
     }
 
-    
 	return 0;
 }

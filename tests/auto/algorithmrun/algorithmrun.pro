@@ -3,4 +3,5 @@ include(../tests.pri)
 TEMPLATE  = app
 TARGET    = tst_algorithmrun
 
-SOURCES += algorithmrun.cpp
+SOURCES += \
+    tst_algorithmrun.cpp
