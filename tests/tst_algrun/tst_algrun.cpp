@@ -22,8 +22,7 @@ private Q_SLOTS:
 
 void Tst_Algrun::testRandomQP()
 {
-    // test direct input
-    cout << "\nTest random problems: "<<endl;
+    cout << "\nTest random QP problem: "<<endl;
     int m, n;
 
     m = 2; n = 5;
@@ -35,8 +34,6 @@ void Tst_Algrun::testRandomQP()
 
     Q = Q.transpose()*Q;
 
-    // qp test
-    cout<<"\nQP problem:"<<endl;
     Algorithm* qp_test = new cppipm(Q, A, b, c);
     qp_test->solve();
 
@@ -45,8 +42,7 @@ void Tst_Algrun::testRandomQP()
 
 void Tst_Algrun::testRandomLP()
 {
-    // test direct input
-    cout << "\nTest random problems: "<<endl;
+    cout << "\nTest random LP problem: "<<endl;
     int m, n;
 
     m = 2; n = 5;
@@ -55,8 +51,6 @@ void Tst_Algrun::testRandomLP()
     vec b = vec::Random(m);
     vec c = vec::Random(n);
 
-    // qp test
-    cout<<"\nQP problem:"<<endl;
     Algorithm* lp_test = new cppipm(A, b, c);
     lp_test->solve();
 
