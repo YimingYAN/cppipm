@@ -1,2 +1,3 @@
 TEMPLATE=subdirs
-SUBDIRS += algorithmrun
+SUBDIRS += \
+    tst_algrun

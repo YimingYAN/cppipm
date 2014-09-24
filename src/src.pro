@@ -15,4 +15,3 @@ QMAKE_CXXFLAGS += -O3
 
 SOURCES += *.cpp
 HEADERS += *.h
-
