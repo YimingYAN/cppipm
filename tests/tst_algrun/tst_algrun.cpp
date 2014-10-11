@@ -59,6 +59,7 @@ void Tst_Algrun::testRandomLP()
 
 void Tst_Algrun::testAfiroQP()
 {
+    cout<< "\tNot implemented yet" <<endl;
 
 }
 
