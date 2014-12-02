@@ -95,9 +95,7 @@ int mpsReader::trans2standardForm(mat &Qs, mat &As, vec &bs, vec &cs)
         }
         
     }
-    
-    //Qs.print("Qs = "); As.print("As = "); bs.print("bs = "); cs.print("cs = ");
-    
+        
     return 0;
 }
 

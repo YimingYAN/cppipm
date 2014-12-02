@@ -53,8 +53,6 @@ void cppipm::initialize()
     bc = max(prob.b.norm(), prob.c.norm()) + 1;
 }
 
-
-
 void cppipm::initialPoint()
 {
     vec e = vec::Ones(prob.n);

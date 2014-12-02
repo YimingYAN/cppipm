@@ -14,7 +14,6 @@
 #include "include_libs.h"
 #include "mpsReader.h"
 
-
 class cppipm: public Algorithm
 {
 public:
@@ -29,8 +28,7 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-protected:
-
+private:
     Problem     prob;
     Parameters  pars;
     Status      stat;
@@ -62,6 +60,4 @@ protected:
     void endTimer();
     
     void _getDirections(vec& Rm, Factorization& factor);
-    
-    
 };
