@@ -151,27 +151,19 @@ void cppipm::calSearchDriection()
     vec e = vec::Ones(prob.n);
     
     // form the augmented system
-    mat M_R1(prob.n, prob.m+prob.n);
-    mat M_R2(prob.m, prob.m+prob.n);
     mat M(prob.m + prob.n, prob.m + prob.n);
-    vec theta(prob.n);
-    
-    // format the coeff. matrix for (dx, dy) in the augmented system
     mat Theta(prob.n, prob.n);
     Theta = s.cwiseQuotient(x).asDiagonal();
     Theta = -prob.Q - Theta;
-    
-    M_R1 << Theta,  prob.A.transpose();
-    M_R2 << prob.A, mat::Zero(prob.m, prob.m);
-    M << M_R1,
-         M_R2;
+    M << Theta,  prob.A.transpose(),
+         prob.A, mat::Zero(prob.m, prob.m);
     
     // factorise M
     Factorization factor = M.householderQr();
     
     // predictor step
     vec Rm = -x.cwiseProduct(s);
-    _getDirections(Rm, factor);
+    getDirections(Rm, factor);
     getStepSize();
     
     // get sigma
@@ -181,10 +173,10 @@ void cppipm::calSearchDriection()
     
     // corrector and centrality step
     Rm = sigma * mu * e - dx.cwiseProduct(ds) - x.cwiseProduct(s);
-    _getDirections(Rm, factor);
+    getDirections(Rm, factor);
 }
 
-void cppipm::_getDirections(vec& Rm, Factorization& factor)
+void cppipm::getDirections(vec& Rm, Factorization& factor)
 {
     vec rhs(prob.n + prob.m);
     vec dxy(prob.n + prob.m);
@@ -192,9 +184,8 @@ void cppipm::_getDirections(vec& Rm, Factorization& factor)
     rhs << Rd - Rm.cwiseQuotient(x),
            Rp;
     
-    // solve for directions (dx,dy)
+    // solve for directions
     dxy = factor.solve(rhs);
-    
     dx = dxy.head(prob.n);
     dy = dxy.tail(prob.m);
     ds = (Rm - s.cwiseProduct(dx));
@@ -203,23 +194,12 @@ void cppipm::_getDirections(vec& Rm, Factorization& factor)
 
 void cppipm::getStepSize()
 {
-    // Initialize the stepsize
-    alphax = 10.0;
-    alphas = 10.0;
-    
-    for (int i=0; i<dx.rows(); i++)
-    {
-        if (dx(i) < 0)
-            if (alphax > -x(i)/dx(i))
-                alphax = -x(i)/dx(i);
-        
-        if (ds(i) < 0)
-            if (alphas > -s(i)/ds(i))
-                alphas = -s(i)/ds(i);
-    }
-    
-    alphax = min(pars.eta*alphax, 1.0);
-    alphas = min(pars.eta*alphas, 1.0);
+    alphax = (dx.cwiseQuotient(x)).minCoeff();
+    alphas = (ds.cwiseQuotient(s)).minCoeff();
+    alphax = -1.0/min(alphax,-1.0);
+    alphas = -1.0/min(alphas,-1.0);
+    alphax = min(0.9995*alphax, 1.0);
+    alphas = min(0.9995*alphas, 1.0);
 }
 
 void cppipm::updateIterates()

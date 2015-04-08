@@ -48,7 +48,8 @@ void Tst_Algrun::testRandomLP()
     m = 2; n = 5;
 
     mat A = mat::Random(m,n);
-    vec b = vec::Random(m);
+    vec x = vec::Random(n);
+    vec b = A*x;
     vec c = vec::Random(n);
 
     Algorithm* lp_test = new cppipm(A, b, c);

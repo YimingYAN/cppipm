@@ -59,5 +59,5 @@ private:
     void startTimer();
     void endTimer();
     
-    void _getDirections(vec& Rm, Factorization& factor);
+    void getDirections(vec& Rm, Factorization& factor);
 };
