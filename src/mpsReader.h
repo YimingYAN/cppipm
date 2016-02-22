@@ -61,14 +61,12 @@
 #include<iostream>
 #include <vector>
 
-#include "include_libs.h"
+#include "global.h"
 
 class mpsReader
 {
 
 public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
     mpsReader(std::string fileName);
     
     double time;

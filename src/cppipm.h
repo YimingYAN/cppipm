@@ -11,7 +11,7 @@
 #include "Problem.h"
 #include "Parameters.h"
 #include "Status.h"
-#include "include_libs.h"
+#include "global.h"
 #include "mpsReader.h"
 
 class cppipm: public Algorithm
@@ -25,8 +25,6 @@ public:
     cppipm(const Problem &prob);
     cppipm(const Problem &prob, const Parameters &pars);
     cppipm(const string fileName);                                     // mps file
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
     Problem     prob;

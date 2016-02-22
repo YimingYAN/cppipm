@@ -1,4 +1,4 @@
 INCLUDEPATH +=  \
     $$PWD/src \
-    $$PWD/lib \
-    $$PWD/lib/Eigen
+    $$PWD/libs \
+    $$PWD/libs/Eigen

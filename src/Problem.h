@@ -9,7 +9,7 @@
 #ifndef cppipm_Problem_h
 #define cppipm_Problem_h
 
-#include "include_libs.h"
+#include "global.h"
 #include <cassert>
 
 class Problem
@@ -21,7 +21,6 @@ private:
     vec opts;   // |
 
 public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     mat Q;     // |
     mat A;     // | Problem
