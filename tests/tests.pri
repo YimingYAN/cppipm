@@ -6,7 +6,17 @@ QT += testlib
 CONFIG += qt warn_on console depend_includepath testcase
 CONFIG -= app_bundle
 
-QMAKE_CXXFLAGS += -O3
+win32-msvc* {
+    QMAKE_CXXFLAGS += /O2
+}
+
+mac {
+    QMAKE_CXXFLAGS += -O3
+}
+
+linux-g++ {
+    QMAKE_CXXFLAGS += -O3
+}
 
 DEFINES -= QT_NO_CAST_FROM_ASCII
 # prefix test binary with tst_

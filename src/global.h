@@ -9,16 +9,20 @@
 #ifndef cppipm_global_h
 #define cppipm_global_h
 
+#if defined(_MSC_VER) //Microsoft Visual Studio
+  #define DLL_EXPORT __declspec(dllexport)
+#else
+  #define DLL_EXPORT
+#endif
+
 #include <iostream>
 using namespace std;
 
 #include <Eigen/Dense>
 #include <Eigen/bench/BenchTimer.h>
 
-using namespace Eigen;
-
-typedef MatrixXd mat;
-typedef VectorXd vec;
-typedef HouseholderQR<mat> Factorization;
+typedef Eigen::MatrixXd mat;
+typedef Eigen::VectorXd vec;
+typedef Eigen::HouseholderQR<mat> Factorization;
 
 #endif

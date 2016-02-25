@@ -6,11 +6,12 @@
  *  Copyright (c) 2014 Yiming. All rights reserved.
  */
 
-
 #ifndef Algorithm_h
 #define Algorithm_h
 
-class Algorithm
+#include "global.h"
+
+class DLL_EXPORT Algorithm
 {
     
 public:
@@ -44,7 +45,7 @@ public:
     }
     
 protected:
-    int iter;
+    int    iter;
     double residual;
     double totalTime;
     

@@ -8,8 +8,9 @@
 
 #ifndef cppipm_Parameters_h
 #define cppipm_Parameters_h
+#include "global.h"
 
-class Parameters
+class DLL_EXPORT Parameters
 {
 public:
     int maxIter;

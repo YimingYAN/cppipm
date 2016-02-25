@@ -12,7 +12,7 @@
 #include "global.h"
 #include <cassert>
 
-class Problem
+class DLL_EXPORT Problem
 {
 private:
 

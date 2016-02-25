@@ -14,7 +14,11 @@
 #include "global.h"
 #include "mpsReader.h"
 
-class cppipm: public Algorithm
+class Problem;
+class Parameters;
+class Status;
+
+class DLL_EXPORT cppipm: public Algorithm
 {
 public:
     /* 
@@ -22,15 +26,15 @@ public:
      */
     cppipm(const mat &Q, const mat &A, const vec &b, const vec &c);    // QP
     cppipm(const mat &A, const vec &b, const vec &c);                  // LP
-    cppipm(const Problem &prob);
-    cppipm(const Problem &prob, const Parameters &pars);
+    cppipm(const Problem &m_prob);
+    cppipm(const Problem &m_prob, const Parameters &m_params);
     cppipm(const string fileName);                                     // mps file
 
 private:
-    Problem     prob;
-    Parameters  pars;
-    Status      stat;
-    Eigen::BenchTimer timer;
+    Problem     m_prob;
+    Parameters  m_params;
+    Status      m_stat;
+    Eigen::BenchTimer m_timer;
     
     double alphax, alphas;
     double mu;

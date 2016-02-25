@@ -11,7 +11,17 @@ CONFIG   -= qt
 
 DEFINES += CPPIPM_LIBRARY
 
-QMAKE_CXXFLAGS += -O3
+win32-msvc* {
+    QMAKE_CXXFLAGS += /O2
+}
+
+mac {
+    QMAKE_CXXFLAGS += -O3
+}
+
+linux-g++ {
+    QMAKE_CXXFLAGS += -O3
+}
 
 SOURCES += *.cpp
 HEADERS += *.h

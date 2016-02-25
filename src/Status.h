@@ -8,8 +8,9 @@
 
 #ifndef cppipm_Status_h
 #define cppipm_Status_h
+#include "global.h"
 
-class Status
+class DLL_EXPORT Status
 {
 private:
     int exitFlag;   // 0 - optimal

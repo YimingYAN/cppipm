@@ -15,23 +15,23 @@
 
 cppipm::cppipm(const Problem &iprob)
 {
-    prob = Problem(iprob);
+    m_prob = Problem(iprob);
 }
 
 cppipm::cppipm(const Problem &iprob, const Parameters &ipars)
 {
-    prob = Problem(iprob);
-    pars = Parameters(ipars);
+    m_prob = Problem(iprob);
+    m_params = Parameters(ipars);
 }
 
 cppipm::cppipm(const mat &A, const vec &b, const vec &c)
 {
-    prob = Problem(A, b, c);
+    m_prob = Problem(A, b, c);
 }
 
 cppipm::cppipm(const mat &Q, const mat &A, const vec &b, const vec &c)
 {
-    prob = Problem(Q, A, b, c);
+    m_prob = Problem(Q, A, b, c);
 }
 
 cppipm::cppipm(const string fileName)
@@ -41,7 +41,7 @@ cppipm::cppipm(const string fileName)
     vec b, c;
 
     mpsQAFIRO.trans2standardForm(Q, A, b, c);
-    prob = Problem(Q, A, b, c);
+    m_prob = Problem(Q, A, b, c);
 }
 
 void cppipm::initialize()
@@ -50,24 +50,24 @@ void cppipm::initialize()
     totalTime = 0.0;
     residual = 0.0;
     
-    bc = max(prob.b.norm(), prob.c.norm()) + 1;
+    bc = max(m_prob.b.norm(), m_prob.c.norm()) + 1;
 }
 
 void cppipm::initialPoint()
 {
-    vec e = vec::Ones(prob.n);
+    vec e = vec::Ones(m_prob.n);
     
     double delta_x, delta_s, delta_x_c, delta_s_c, pdct;
-    mat coeffM = prob.A*prob.A.transpose();
+    mat coeffM = m_prob.A*m_prob.A.transpose();
     
     // min norm(x) s.t. Ax = b
-    x = prob.A.transpose() * coeffM.llt().solve(prob.b);
+    x = m_prob.A.transpose() * coeffM.llt().solve(m_prob.b);
     //x = prob.A.transpose() * coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.b);
     
     // min norm(s) s.t. A'*y + s - Qx = c
-    y = coeffM.llt().solve(prob.A*prob.c);
+    y = coeffM.llt().solve(m_prob.A*m_prob.c);
     //y = coeffM.jacobiSvd(ComputeThinU | ComputeThinV).solve(prob.A*prob.c);
-    s = prob.c - prob.A.transpose()*y + prob.Q*x;
+    s = m_prob.c - m_prob.A.transpose()*y + m_prob.Q*x;
     
     // delta_x and delta_s
     delta_x = -1.5 * x.minCoeff();
@@ -80,8 +80,8 @@ void cppipm::initialPoint()
     vec temp = (x+delta_x * e);
     temp = temp.cwiseProduct(s+delta_s * e);
     pdct = 0.5 * temp.sum();
-    delta_x_c = delta_x+pdct/(s.sum()+prob.n*delta_s);
-    delta_s_c = delta_s+pdct/(x.sum()+prob.n*delta_x);
+    delta_x_c = delta_x+pdct/(s.sum()+m_prob.n*delta_s);
+    delta_s_c = delta_s+pdct/(x.sum()+m_prob.n*delta_x);
     
     x = x + delta_x_c * e;
     s = s + delta_s_c * e;
@@ -89,22 +89,22 @@ void cppipm::initialPoint()
 
 void cppipm::calResidual()
 {
-    mu = x.dot(s) / prob.n;
-    Rp = prob.b - prob.A*x;
-    Rd = prob.c - prob.A.transpose()*y - s + prob.Q*x;
+    mu = x.dot(s) / m_prob.n;
+    Rp = m_prob.b - m_prob.A*x;
+    Rd = m_prob.c - m_prob.A.transpose()*y - s + m_prob.Q*x;
     
-    residual = ( Rp.norm() + Rd.norm() + prob.n*mu ) / bc;
+    residual = ( Rp.norm() + Rd.norm() + m_prob.n*mu ) / bc;
 }
 
 bool cppipm::checkTermination()
 {
-    bool check_maxIter  = iter > pars.maxIter;
-    bool check_residual = residual < pars.tol;
+    bool check_maxIter  = iter > m_params.maxIter;
+    bool check_residual = residual < m_params.tol;
     
     if ( check_maxIter )
-        stat.setExitFlag(1);
+        m_stat.setExitFlag(1);
     if ( check_residual )
-        stat.setExitFlag(0);
+        m_stat.setExitFlag(0);
     
     return check_maxIter || check_residual;
 }
@@ -148,15 +148,15 @@ void cppipm::calSearchDriection()
      [  S   0  X ] [ ds ] =   [ sigma*mu*e - dX_pred*dS_pred*e -  XSe]   [ Rm_corr2 ]
      
      */
-    vec e = vec::Ones(prob.n);
+    vec e = vec::Ones(m_prob.n);
     
     // form the augmented system
-    mat M(prob.m + prob.n, prob.m + prob.n);
-    mat Theta(prob.n, prob.n);
+    mat M(m_prob.m + m_prob.n, m_prob.m + m_prob.n);
+    mat Theta(m_prob.n, m_prob.n);
     Theta = s.cwiseQuotient(x).asDiagonal();
-    Theta = -prob.Q - Theta;
-    M << Theta,  prob.A.transpose(),
-         prob.A, mat::Zero(prob.m, prob.m);
+    Theta = -m_prob.Q - Theta;
+    M << Theta,  m_prob.A.transpose(),
+         m_prob.A, mat::Zero(m_prob.m, m_prob.m);
     
     // factorise M
     Factorization factor = M.householderQr();
@@ -168,7 +168,7 @@ void cppipm::calSearchDriection()
     
     // get sigma
     vec temp = x + alphax*dx;
-    sigma = temp.dot(s + alphas*ds) / prob.n;
+    sigma = temp.dot(s + alphas*ds) / m_prob.n;
     sigma = pow( sigma/mu, 3.0);
     
     // corrector and centrality step
@@ -178,16 +178,16 @@ void cppipm::calSearchDriection()
 
 void cppipm::getDirections(vec& Rm, Factorization& factor)
 {
-    vec rhs(prob.n + prob.m);
-    vec dxy(prob.n + prob.m);
+    vec rhs(m_prob.n + m_prob.m);
+    vec dxy(m_prob.n + m_prob.m);
     
     rhs << Rd - Rm.cwiseQuotient(x),
            Rp;
     
     // solve for directions
     dxy = factor.solve(rhs);
-    dx = dxy.head(prob.n);
-    dy = dxy.tail(prob.m);
+    dx = dxy.head(m_prob.n);
+    dy = dxy.tail(m_prob.m);
     ds = (Rm - s.cwiseProduct(dx));
     ds = ds.cwiseQuotient(x);
 }
@@ -212,7 +212,7 @@ void cppipm::updateIterates()
 // Print info
 void cppipm::printHeader()
 {
-    if (pars.verbose > 0)
+    if (m_params.verbose > 0)
     {
         ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< "Iter";
@@ -226,7 +226,7 @@ void cppipm::printHeader()
 
 void cppipm::printIter()
 {
-    if (pars.verbose > 0)
+    if (m_params.verbose > 0)
     {
         ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< iter;
@@ -252,12 +252,12 @@ void cppipm::printFooter()
 {
     using namespace std;
     
-    if (pars.verbose >= 0)
+    if (m_params.verbose >= 0)
     {
         ios::fmtflags old_settings = cout.flags();
         cout<<"----------------------------"<<endl;
         cout<< "CPPIPM Terminated. ";
-        cout<< "Status : "<<stat.getExitFlag() << endl;
+        cout<< "Status : "<<m_stat.getExitFlag() << endl;
         cout<< "[Iters: "<< iter<< "] ";
         cout<<setprecision(2)<<scientific;
         cout<< "[Time: "<<totalTime << "s]";
@@ -269,11 +269,11 @@ void cppipm::printFooter()
 
 void cppipm::startTimer()
 {
-    timer.start();
+    m_timer.start();
 }
 
 void cppipm::endTimer()
 {
-    timer.stop();
-    totalTime = timer.value();
+    m_timer.stop();
+    totalTime = m_timer.value();
 }
