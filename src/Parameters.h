@@ -13,30 +13,34 @@
 class DLL_EXPORT Parameters
 {
 public:
-    int maxIter;
-    int verbose;
-    double tol;
-    double eta;     // ratio for stepsizes
-    
     Parameters()
-    {
-        maxIter = 50;
-        tol = 1e-08;
-        verbose = 2;
-        eta = 0.99995;
-    }
+        : m_maxIter(50),
+          m_tol(1e-08),
+          m_verbose(2),
+          m_eta(0.99995) { }
     
     Parameters(int otherMaxIter, double otherTol, int otherVerbose)
-    {
-        maxIter = otherMaxIter;
-        tol = otherTol;
-        verbose = otherVerbose;
-        eta = 0.99995;
-    }
+        : m_maxIter(otherMaxIter),
+          m_tol(otherTol),
+          m_verbose(otherVerbose),
+          m_eta(0.99995) { }
     
-    void set_maxIter(int otherMaxIter) { maxIter = otherMaxIter; }
-    void set_setTol(double otherTol)   { tol = otherTol;         }
-    void set_verbose(int otherVerbose) { verbose = otherVerbose; }
+    void setMaxIter(int otherMaxIter)  { m_maxIter = otherMaxIter; }
+    void setTolerance(double otherTol) { m_tol = otherTol;         }
+    void setVerbose(int otherVerbose)  { m_verbose = otherVerbose; }
+    int maxIter() const {return m_maxIter;}
+    int verbose() const {return m_verbose;}
+    double tol() const {return m_tol;}
+    double eta() const {return m_eta;}
+
+private:
+    int m_maxIter;
+    int m_verbose;
+    double m_tol;
+    double m_eta;     // ratio for stepsizes
 };
 
 #endif
+
+
+

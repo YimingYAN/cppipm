@@ -25,7 +25,7 @@ void Tst_Algrun::testRandomQP()
     cout << "\nTest random QP problem: "<<endl;
     int m, n;
 
-    m = 2; n = 5;
+    m = 20; n = 50;
 
     mat Q = mat::Random(n,n);
     mat A = mat::Random(m,n);
@@ -60,7 +60,7 @@ void Tst_Algrun::testRandomLP()
 
 void Tst_Algrun::testAfiroQP()
 {
-    cout<< "\tNot implemented yet" <<endl;
+
 
 }
 

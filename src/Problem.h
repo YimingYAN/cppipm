@@ -14,6 +14,7 @@
 
 class DLL_EXPORT Problem
 {
+
 private:
 
     vec optx;   // |

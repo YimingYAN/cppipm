@@ -98,8 +98,8 @@ void cppipm::calResidual()
 
 bool cppipm::checkTermination()
 {
-    bool check_maxIter  = iter > m_params.maxIter;
-    bool check_residual = residual < m_params.tol;
+    bool check_maxIter  = iter > m_params.maxIter();
+    bool check_residual = residual < m_params.tol();
     
     if ( check_maxIter )
         m_stat.setExitFlag(1);
@@ -212,7 +212,7 @@ void cppipm::updateIterates()
 // Print info
 void cppipm::printHeader()
 {
-    if (m_params.verbose > 0)
+    if (m_params.verbose() > 0)
     {
         ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< "Iter";
@@ -226,7 +226,7 @@ void cppipm::printHeader()
 
 void cppipm::printIter()
 {
-    if (m_params.verbose > 0)
+    if (m_params.verbose() > 0)
     {
         ios::fmtflags old_settings = cout.flags();
         cout<<setw(5)<< iter;
@@ -252,7 +252,7 @@ void cppipm::printFooter()
 {
     using namespace std;
     
-    if (m_params.verbose >= 0)
+    if (m_params.verbose() >= 0)
     {
         ios::fmtflags old_settings = cout.flags();
         cout<<"----------------------------"<<endl;
