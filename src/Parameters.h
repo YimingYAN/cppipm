@@ -15,14 +15,14 @@ class DLL_EXPORT Parameters
 public:
     Parameters()
         : m_maxIter(50),
-          m_tol(1e-08),
           m_verbose(2),
+          m_tol(1e-08),
           m_eta(0.99995) { }
     
     Parameters(int otherMaxIter, double otherTol, int otherVerbose)
         : m_maxIter(otherMaxIter),
-          m_tol(otherTol),
           m_verbose(otherVerbose),
+          m_tol(otherTol),
           m_eta(0.99995) { }
     
     void setMaxIter(int otherMaxIter)  { m_maxIter = otherMaxIter; }
