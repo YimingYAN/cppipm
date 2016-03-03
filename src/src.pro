@@ -6,10 +6,6 @@ TARGET = cppipm
 CONFIG   += staticlib
 CONFIG   -= app_bundle qt
 
-win32:CONFIG(release, debug|release): DESTDIR = $$OUT_PWD/../bin/release
-else:win32:CONFIG(debug, debug|release): DESTDIR = $$OUT_PWD/../bin/debug
-else: DESTDIR = $$OUT_PWD/../bin
-
 DEFINES += CPPIPM_LIBRARY
 
 HEADERS += \

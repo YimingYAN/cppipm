@@ -3,7 +3,7 @@ INCLUDEPATH +=  \
     $$PWD/libs \
     $$PWD/libs/Eigen
 
-CONFIG += console c++11 thread
+CONFIG += c++11 thread
 
 # Compiler flags
 win32-msvc* {
