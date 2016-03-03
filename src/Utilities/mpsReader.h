@@ -58,7 +58,7 @@
 #ifndef cppipm_mpsReader_h
 #define cppipm_mpsReader_h
 
-#include<iostream>
+#include <iostream>
 #include <vector>
 
 #include "global.h"

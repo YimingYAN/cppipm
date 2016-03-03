@@ -10,7 +10,7 @@
 #define cppipm_global_h
 
 #if defined(_MSC_VER) //Microsoft Visual Studio
-  #define DLL_EXPORT __declspec(dllexport)
+  #define DLL_EXPORT //__declspec(dllexport)
 #else
   #define DLL_EXPORT
 #endif

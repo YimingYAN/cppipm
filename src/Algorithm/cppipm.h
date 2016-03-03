@@ -7,12 +7,12 @@
  * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
 
-#include "Algorithm.h"
-#include "Problem.h"
-#include "Parameters.h"
-#include "Status.h"
+#include <Core/Algorithm.h>
+#include <Core/Problem.h>
+#include <Core/Parameters.h>
+#include <Core/Status.h>
+#include <Utilities/mpsReader.h>
 #include "global.h"
-#include "mpsReader.h"
 
 class Problem;
 class Parameters;
