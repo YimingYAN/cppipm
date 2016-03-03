@@ -1,5 +1,5 @@
 include(../default.pri)
-include(testrpath.pri)
+#include(testrpath.pri)
 isEmpty(TEMPLATE):TEMPLATE=app
 QT += testlib
 CONFIG += qt warn_on console depend_includepath testcase
