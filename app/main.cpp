@@ -6,6 +6,6 @@ int main (int argc, char *argv[])
         std::cout << "Usage: executable <algorithm_name> <problem_file>" << std::endl;
         return 0;
     }
-    std::cout << "App" << std::endl;
+    std::cout << "Running the app" << std::endl;
     return 0;
 }
