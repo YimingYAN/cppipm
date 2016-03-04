@@ -2,7 +2,7 @@
 #include <QtTest>
 
 #include <iostream>
-#include <Algorithm/cppipm.h>
+#include <algorithm/cppipm.h>
 
 using namespace std;
 
