@@ -164,7 +164,7 @@ void cppipm::calSearchDriection()
     // predictor step
     vec Rm = -x.cwiseProduct(s);
     getDirections(Rm, factor);
-    getStepSize();
+    calStepSize();
     
     // get sigma
     vec temp = x + alphax*dx;
@@ -192,7 +192,7 @@ void cppipm::getDirections(vec& Rm, Factorization& factor)
     ds = ds.cwiseQuotient(x);
 }
 
-void cppipm::getStepSize()
+void cppipm::calStepSize()
 {
     alphax = (dx.cwiseQuotient(x)).minCoeff();
     alphas = (ds.cwiseQuotient(s)).minCoeff();

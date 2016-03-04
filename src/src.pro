@@ -10,12 +10,13 @@ DEFINES += CPPIPM_LIBRARY
 
 HEADERS += \
     global.h \
-    Algorithm/cppipm.h \
     Core/Algorithm.h \
+    Core/AbstractConvexOptimisationSolver.h \
     Core/Parameters.h \
     Core/Problem.h \
     Core/Status.h \
-    Utilities/mpsReader.h
+    Utilities/mpsReader.h \
+    Algorithm/cppipm.h
 
 SOURCES += \
     Algorithm/cppipm.cpp \

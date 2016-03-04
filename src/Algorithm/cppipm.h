@@ -7,7 +7,7 @@
  * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
 
-#include <Core/Algorithm.h>
+#include <Core/AbstractConvexOptimisationSolver.h>
 #include <Core/Problem.h>
 #include <Core/Parameters.h>
 #include <Core/Status.h>
@@ -18,7 +18,7 @@ class Problem;
 class Parameters;
 class Status;
 
-class DLL_EXPORT cppipm: public Algorithm
+class DLL_EXPORT cppipm: public AbsractConvexOptimizationSolver
 {
 public:
     /* 
@@ -52,7 +52,7 @@ private:
     void calResidual();
     bool checkTermination();
     void calSearchDriection();
-    void getStepSize();
+    void calStepSize();
     void updateIterates();
 
     void printHeader();
