@@ -1,11 +1,15 @@
 #include <iostream>
 
+using std::cout;
+using std::endl;
 int main (int argc, char *argv[])
 {
     if(argc < 2) {
-        std::cout << "Usage: executable <algorithm_name> <problem_file>" << std::endl;
+        cout << "Usage: executable <algorithm_name> <problem_file>" << endl;
         return 0;
     }
-    std::cout << "Running the app" << std::endl;
+    cout << "Running the app."       << endl;
+    cout << "Algorithm: " << argv[0] << endl;
+    cout << "Problem  : " << argv[1] << endl;
     return 0;
 }
