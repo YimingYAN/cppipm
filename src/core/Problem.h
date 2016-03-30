@@ -66,7 +66,6 @@ public:
     /* Copy from other problem */
     Problem(const Problem& otherProb)
     {
-        
         m = otherProb.m;
         n = otherProb.n;
         
@@ -78,9 +77,9 @@ public:
         
     }
     // Methods
-    void setOptx(const vec x) { optx = x; }
-    void setOpty(const vec y) { opty = y; }
-    void setOpts(const vec s) { opts = s; }
+    void setOptx(const vec& x) { optx = x; }
+    void setOpty(const vec& y) { opty = y; }
+    void setOpts(const vec& s) { opts = s; }
     
     
     vec getOptx() const { return optx; }

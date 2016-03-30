@@ -1,24 +1,21 @@
-#ifndef ABSTRACTCONVEXOPTIMISATIONSOLVER
-#define ABSTRACTCONVEXOPTIMISATIONSOLVER
+#ifndef GENERICCONVEXOPTIMISATIONSOLVER
+#define GENERICCONVEXOPTIMISATIONSOLVER
 
 #include <core/Algorithm.h>
 /*!
  * \brief Generic tempalte class for convex optimization solvers
  */
-class AbsractConvexOptimizationSolver : public Algorithm
+class GenericConvexOptimizationSolver : public Algorithm
 {
 public:
     void solve()
     {
         initialize();
-        printHeader();
         startTimer();
 
         initialPoint();
         while (true) {
             calResidual();
-            printIter();
-
             if (checkTermination()) {
                 break;
             }
@@ -30,7 +27,6 @@ public:
             iter++;
         }
         endTimer();
-        printFooter();
     }
 
 protected:
@@ -49,11 +45,7 @@ private:
 
     virtual void startTimer()               = 0;
     virtual void endTimer()                 = 0;
-    virtual void printHeader()              = 0;
-    virtual void printIter()                = 0;
-    virtual void printFooter()              = 0;
-
 };
 
-#endif // ABSTRACTCONVEXOPTIMISATIONSOLVER
+#endif // GENERICCONVEXOPTIMISATIONSOLVER
 

@@ -7,7 +7,7 @@
  * Copyright (c) 2014 Yiming Yan. All rights reserved.
  */
 
-#include <core/AbstractConvexOptimisationSolver.h>
+#include <core/GenericConvexOptimisationSolver.h>
 #include <core/Problem.h>
 #include <core/Parameters.h>
 #include <core/Status.h>
@@ -18,7 +18,7 @@ class Problem;
 class Parameters;
 class Status;
 
-class DLL_EXPORT cppipm: public AbsractConvexOptimizationSolver
+class DLL_EXPORT cppipm: public GenericConvexOptimizationSolver
 {
 public:
     /* 
