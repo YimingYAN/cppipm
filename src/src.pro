@@ -4,7 +4,7 @@ TEMPLATE = lib
 TARGET = cppipm
 
 CONFIG   += staticlib
-CONFIG   -= app_bundle qt
+CONFIG   -= qt
 
 DEFINES += CPPIPM_LIBRARY
 
@@ -16,10 +16,16 @@ HEADERS += \
     core/Status.h \
     utilities/mpsReader.h \
     algorithm/cppipm.h \
-    core/GenericConvexOptimisationSolver.h
+    core/GenericConvexOptimisationSolver.h \
+    core/Vector.h \
+    core/Matrix.h \
+    core/Operations.h
 
 SOURCES += \
     algorithm/cppipm.cpp \
-    utilities/mpsReader.cpp
+    utilities/mpsReader.cpp \
+    core/Vector.cpp \
+    core/Matrix.cpp \
+    core/Operations.cpp
 
 
