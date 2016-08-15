@@ -18,6 +18,7 @@ public:
 private Q_SLOTS:
     void vectorConstructors();
     void vectorOperators();
+    void matrixConstructors();
 };
 
 void Tst_Matrix::vectorConstructors()
@@ -57,9 +58,41 @@ void Tst_Matrix::vectorOperators()
     cout << "v1 - v2: " << v1 - v2 << endl;
     cout << "v1 * v2: " << v1 * v2 << endl;
     cout << "v1 / v2: " << v1 / v2 << endl;
+    cout << "v1 == v2: " << (v1 == v2) << endl;
+    cout << "v1 == v2: " << (v1 == v1) << endl;
+
+    QCOMPARE(v1 == v2, false);
+    QCOMPARE(v1 == v1, true);
 
     v1 = v2;
     cout << "v1 = v2: " << v1 << endl;
+    QCOMPARE(v1 == v2, true);
+}
+
+void Tst_Matrix::matrixConstructors()
+{
+    int nCol = 6;
+    int nRow = 3;
+    vector<vector<double> > mat(nRow);
+    for(int i=0; i<nRow; ++i) {
+        for(int j=0; j<nCol; ++j) {
+            mat[i].push_back(i+j);
+        }
+    }
+    Matrix mat1(nRow, nCol, mat);
+    Matrix mat2(mat1);
+    Matrix mat3(mat);
+
+    QCOMPARE(mat1 == mat2, true);
+    QCOMPARE(mat1 == mat2, true);
+    QCOMPARE(mat1 == mat3, true);
+
+    vector<vector<double> > mat4(nRow);
+    mat4.push_back(vector<double>({1, 2, 3}));
+    mat4.push_back(vector<double>({4, 5 }));
+    Matrix mat5(mat4);
+    QCOMPARE(mat5.cols() == 0, true);
+    QCOMPARE(mat5.rows() == 0, true);
 }
 
 QTEST_APPLESS_MAIN(Tst_Matrix)

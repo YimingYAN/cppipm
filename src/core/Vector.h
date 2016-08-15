@@ -30,6 +30,7 @@ public:
     friend Vector operator - (const Vector& lhs, const Vector& rhs);
     friend Vector operator * (const Vector& lhs, const Vector& rhs);
     friend Vector operator / (const Vector& lhs, const Vector& rhs);
+    friend bool operator == (const Vector& lhs, const Vector& rhs);
 
     double* rawData() const;
 
