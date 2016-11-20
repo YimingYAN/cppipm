@@ -1,12 +1,12 @@
-cppipm
+## cppipm
 =====
 C++ implementation of the Interior Point Method (CPPIPM)
 
-###Requirements
+### Requirements
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page), "*a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms*". 
 Eigen forms the linear algebra core of this software.
 
-###How to use
+### How to use
 QP:
 
 ```
@@ -25,12 +25,15 @@ Or:
   Algorithm* test = new cppipm(otherProblem);  test -> solve();
 ```
 
-###Example
+### Example
 See tests/test.cpp
 
-###Todo
+### Ongoing
+- Unified inferface for Matrix/Vector class
+
+### Todo
 - [x] Switch from Armadillo to Eigen
-- [ ] Unified inferface for Matrix/Vector class - undergoing 
+- [ ] Unified inferface for Matrix/Vector class
 - [ ] Multiple centrality correctors from J. Gondizo
 - [ ] Cholesky decomposition for symmetric indefinite matrix (MA27 or MA57)
 - [ ] Active-set prediction class
