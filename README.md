@@ -37,5 +37,10 @@ Or:
 ## Example
 See test.cpp
 
+## TODO
+This is a very old piece of work from my PhD time. As you can see my understanding of C++ at that time was not very upto the professional standard. ;) 
+Will spend some time in the summer to refactor it. 
+
+
 ----
 Yiming Yan
