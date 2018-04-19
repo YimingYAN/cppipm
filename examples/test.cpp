@@ -1,7 +1,11 @@
-#include <iostream>
 #include "cppipm.h"
 #include "mpsReader.h"
 #include "include_libs.h"
+
+#include <iostream>
+#include <memory>
+
+using AlgorithmPtr = std::unique_ptr<Algorithm>;
 
 int main ( )
 {
@@ -21,11 +25,11 @@ int main ( )
 
     // qp test
     cout<<"\nQP problem:"<<endl;
-    Algorithm* qp_test = new cppipm(Q, A, b, c);
+    AlgorithmPtr qp_test = std::make_unique<cppipm>(Q, A, b, c);
     qp_test->solve();
     
     cout<<"\nLP problem:"<<endl;
-    Algorithm* lp_test = new cppipm(A, b, c);
+    AlgorithmPtr lp_test = std::make_unique<cppipm>(A, b, c);
     lp_test->solve();
     
     
@@ -40,7 +44,7 @@ int main ( )
         cout<< "\n++++++ TESTPROB " <<endl;
         mpsReader mpsTESTPROB("TESTPROB.QPS");
         mpsTESTPROB.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_testprob_test = new cppipm(Qs, As, bs, cs);
+        AlgorithmPtr mps_testprob_test = std::make_unique<cppipm>(Qs, As, bs, cs);
         mps_testprob_test->solve();
     }
     catch (...)
@@ -52,7 +56,7 @@ int main ( )
         cout<< "\n++++++ TESTPROB2" <<endl;
         mpsReader mpsTESTPROB2("TESTPROB2.QPS");
         mpsTESTPROB2.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_testprob2_test = new cppipm(Qs, As, bs, cs);
+        AlgorithmPtr mps_testprob2_test = std::make_unique<cppipm>(Qs, As, bs, cs);
         mps_testprob2_test->solve();
     }
     catch (...)
@@ -65,7 +69,7 @@ int main ( )
         cout<< "\n+++++ QAFIRO " <<endl;
         mpsReader mpsQAFIRO("QAFIRO.QPS");
         mpsQAFIRO.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_qafiro_test = new cppipm(Qs, As, bs, cs);
+        AlgorithmPtr mps_qafiro_test = std::make_unique<cppipm>(Qs, As, bs, cs);
         mps_qafiro_test->solve();
     }
     catch (...)
@@ -78,7 +82,7 @@ int main ( )
         cout<< "\n+++++ SIMPLE" <<endl;
         mpsReader mpsSIMPLE("SIMPLE.QPS");
         mpsSIMPLE.trans2standardForm(Qs, As, bs, cs);
-        Algorithm* mps_simple_test = new cppipm(Qs, As, bs, cs);
+        AlgorithmPtr mps_simple_test = std::make_unique<cppipm>(Qs, As, bs, cs);
         mps_simple_test->solve();
     }
     catch (...)
@@ -86,6 +90,5 @@ int main ( )
         cout<< "ah....SIMPLE"<<endl;
     }
 
-    
-	return 0;
+    return 0;
 }
