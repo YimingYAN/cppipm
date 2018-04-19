@@ -7,7 +7,7 @@ C++ implementation of the Interior Point Method (CPPIPM)
 Eigen forms the linear algebra core of this software.
 
 ## Compilation 
-1. Compile the project using the qmake and the project file (cppipm) provided in the repo. This will require instllation of the qmake toolchain. The solver itself has dependency on Qt libraries. 
+1. Compile the project using the qmake and the project file (cppipm) provided in the repo. This will require instllation of the qmake toolchain. The solver itself has NO dependency on Qt libraries. 
 2. A simple way to compile and run the exmaple: 
   ```
       cd examples
