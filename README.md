@@ -19,19 +19,19 @@ Eigen forms the linear algebra core of this software.
 QP:
 
 ```
-  Algorithm* test = new cppipm(Q,A,b,c); test -> solve();
+  std::unique_ptr<Algorithm> test = std::make_unique<cppipm>(Q,A,b,c); test -> solve();
 ```
 
 LP:
 
 ```
-  Algorithm* test = new cppipm(A,b,c);  test -> solve(); 
+  std::unique_ptr<Algorithm> test = std::make_unique<cppipm>(Q,A,b,c);  test -> solve(); 
 ```
 
 Or:
 
 ```
-  Algorithm* test = new cppipm(otherProblem);  test -> solve();
+ std::unique_ptr<Algorithm> test = std::make_unique<cppipm>(otherProblem);  test -> solve();
 ```
 
 ## Example
