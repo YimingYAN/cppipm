@@ -11,7 +11,7 @@ Eigen forms the linear algebra core of this software.
 2. A simple way to compile and run the exmaple: 
   ```
       cd examples
-      g++ -std=c++11 -I ../lib/ -I ../include/   ../src/cppipm.cpp ../src/mpsReader.cpp test.cpp -o test
+      g++ -std=c++14 -I ../lib/ -I ../include/   ../src/cppipm.cpp ../src/mpsReader.cpp test.cpp -o test
       ./test
   ```
 
