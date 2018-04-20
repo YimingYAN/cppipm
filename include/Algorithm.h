@@ -48,7 +48,6 @@ protected:
     double residual;
     double totalTime;
     
-private:
     virtual void initialize()               = 0;
     virtual void initialPoint()             = 0;
     virtual void calResidual()              = 0;
